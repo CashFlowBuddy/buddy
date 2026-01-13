@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Button, TextInput } from "react-native-paper";
-import { authClient } from "../../lib/auth-client";
+import { authClient } from "../lib/auth-client";
 
 export default function RegisterScreen() {
 

@@ -3,7 +3,7 @@ import { TextInput, Button } from 'react-native-paper';
 import { useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigation';
-import { authClient } from '../../lib/auth-client';
+import { authClient } from '../lib/auth-client';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -51,3 +51,4 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
 
 });
+

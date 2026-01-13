@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import PagerView from "react-native-pager-view";
 import { Appbar, Button } from "react-native-paper";
-import { authClient } from "../../lib/auth-client";
+import { authClient } from "../lib/auth-client";
 
 export default function HomeScreen() {
     const handleLogout = async () => {

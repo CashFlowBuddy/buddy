@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthNavigation from './AuthNavigation';
 import AppNavigation from './AppNavigation';
-import { authClient } from '../../lib/auth-client';
+import { authClient } from '../lib/auth-client';
 
 const Stack = createNativeStackNavigator();
 

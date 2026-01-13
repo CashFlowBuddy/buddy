@@ -1,6 +1,6 @@
 import { Button } from "react-native-paper";
 import { useState } from "react";
-import { authClient } from "../../../lib/auth-client";
+import { authClient } from "../../lib/auth-client";
 
 
 export default function SocialLoginBtn() {
