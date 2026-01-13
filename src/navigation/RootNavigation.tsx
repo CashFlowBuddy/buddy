@@ -1,12 +1,19 @@
-import {NavigationContainer} from '@react-navigation/native';
-import AuthNavigator from './AuthNavigation';
-import AppNavigator from './AppNavigation';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AuthNavigation from './AuthNavigation';
+import AppNavigation from './AppNavigation';
 
-export default function RootNavigator() {
-    const isLoggedIn = false; // Need to replace when the auth logic is implemented
+const Stack = createNativeStackNavigator();
+
+export default function RootNavigation() {
+  const isLoggedIn = true; // replace with auth state
+
   return (
-    <NavigationContainer>
-      {isLoggedIn ? <AppNavigator /> : <AuthNavigator />}
-    </NavigationContainer>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {isLoggedIn ? (
+        <Stack.Screen name="App" component={AppNavigation} />
+      ) : (
+        <Stack.Screen name="Auth" component={AuthNavigation} />
+      )}
+    </Stack.Navigator>
   );
 }

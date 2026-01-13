@@ -1,18 +1,17 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, Button } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../navigation/AuthNavigation';
 
-export default function RegisterScreen() {
+type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+
+export default function LoginScreen({ navigation }: Props) {
   return (
-    <View style={styles.container}>
-      <Text>Register Screen</Text>
+    <View>
+      <Text>Login</Text>
+      <Button
+        title="Go to Register"
+        onPress={() => navigation.navigate('Register')}
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
