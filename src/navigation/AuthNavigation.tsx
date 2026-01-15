@@ -12,6 +12,7 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 export default function AuthNavigation() {
   return (
     <Stack.Navigator
+      id="auth-stack"
       screenOptions={{
         headerShown: false,
       }}

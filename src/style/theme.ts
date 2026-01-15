@@ -7,6 +7,7 @@ export const LightTheme = {
     primary: '#6200ee',
     secondary: '#03dac6',
     background: '#ffffff',
+    onBackground: '#000000',
   },
 };
 
@@ -17,5 +18,6 @@ export const DarkTheme = {
     primary: '#bb86fc',
     secondary: '#03dac6',
     background: '#121212',
+    onBackground: '#ffffff',
   },
 };

@@ -11,7 +11,7 @@ export default function RootNavigation() {
   const isLoggedIn = !!session?.user;
   
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator id="root-stack" screenOptions={{ headerShown: false }}>
       {isLoggedIn ? (
         <Stack.Screen name="App" component={AppNavigation} />
       ) : (
