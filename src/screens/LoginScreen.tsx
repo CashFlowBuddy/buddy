@@ -1,13 +1,13 @@
 import { View } from "react-native";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { AuthStackParamList } from "../navigation/AuthNavigation";
 import { SignInForm } from "@/components/sign-in-form";
 import { useThemeContext } from "../theme/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { AuthStackParamList } from "@/navigation/AuthNavigation";
 
-type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
-
-export default function LoginScreen({ navigation }: Props) {
+export default function LoginScreen() {
   const { colorScheme } = useThemeContext();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   return (
     <View
@@ -18,7 +18,7 @@ export default function LoginScreen({ navigation }: Props) {
         backgroundColor: colorScheme === "dark" ? "#0a0a0a" : "#ffffff",
       }}
     >
-      <SignInForm />
+      <SignInForm onSignUpPress={() => navigation.navigate("Register")} />
     </View>
   );
 }

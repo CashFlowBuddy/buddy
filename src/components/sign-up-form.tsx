@@ -12,18 +12,25 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
 import * as React from 'react';
-import { Pressable, type TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
 import { authClient } from '@/lib/auth-client';
+import * as z from 'zod';
 
-type SignInFormProps = {
-  onSignUpPress?: () => void;
+type SignUpFormProps = {
+  onSignInPress?: () => void;
 };
 
-export function SignInForm({ onSignUpPress }: SignInFormProps) {
+export function SignUpForm({ onSignInPress }: SignUpFormProps) {
   const passwordInputRef = React.useRef<TextInput>(null);
+  const emailInputRef = React.useRef<TextInput>(null);
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [name, setName] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
+
+  function onNameSubmitEditing() {
+    emailInputRef.current?.focus();
+  }
 
   function onEmailSubmitEditing() {
     passwordInputRef.current?.focus();
@@ -31,14 +38,15 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
 
   async function onSubmit() {
     try {
-      await authClient.signIn.email({
+      await authClient.signUp.email({
         email,
         password,
+        name
       });
       setError(null);
     } catch (err: any) {
-      setError(err?.message || "Sign in failed");
-      console.log("Sign in error:", err);
+      setError(err?.message || "Sign up failed");
+      console.log("Sign up error:", err);
     }
   }
 
@@ -46,21 +54,30 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
     <View className="gap-6">
       <Card className="border-border/0 sm:border-border shadow-none sm:shadow-sm sm:shadow-black/5">
         <CardHeader>
-          <CardTitle className="text-center text-xl sm:text-left">Sign in to your app</CardTitle>
-          <CardDescription className="text-center sm:text-left">
-            Welcome back! Please sign in to continue
-          </CardDescription>
+          <CardTitle className="text-center text-xl sm:text-left">Create your account</CardTitle>
         </CardHeader>
         <CardContent className="gap-6">
           <View className="gap-6">
+            <View>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="Your Name"
+                onChangeText={setName}
+                autoComplete="name"
+                autoCapitalize="words"
+                onSubmitEditing={onNameSubmitEditing}
+                returnKeyType="next"
+              />
+            </View>
             <View className="gap-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                ref={emailInputRef}
                 placeholder="m@example.com"
-                value={email}
-                onChangeText={setEmail}
                 keyboardType="email-address"
+                onChangeText={setEmail}
                 autoComplete="email"
                 autoCapitalize="none"
                 onSubmitEditing={onEmailSubmitEditing}
@@ -71,38 +88,27 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
             <View className="gap-1.5">
               <View className="flex-row items-center">
                 <Label htmlFor="password">Password</Label>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="web:h-fit ml-auto h-4 px-1 py-0 sm:h-4"
-                  onPress={() => {
-                    // TODO: Navigate to forgot password screen
-                  }}>
-                  <Text className="font-normal leading-4">Forgot your password?</Text>
-                </Button>
               </View>
               <Input
                 ref={passwordInputRef}
                 id="password"
                 secureTextEntry
-                value={password}
-                onChangeText={setPassword}
                 returnKeyType="send"
                 onSubmitEditing={onSubmit}
+                onChangeText={setPassword}
               />
             </View>
             <Button className="w-full" onPress={onSubmit}>
               <Text>Continue</Text>
             </Button>
           </View>
-          {!!error && <Text className="text-destructive text-sm">{error}</Text>}
           <Text className="text-center text-sm">
-            Don&apos;t have an account?{' '}
+            Already have an account?{' '}
             <Pressable
               onPress={() => {
-                onSignUpPress?.();
+                onSignInPress?.();
               }}>
-              <Text className="text-sm underline underline-offset-4">Sign up</Text>
+              <Text className="text-sm underline underline-offset-4">Sign in</Text>
             </Pressable>
           </Text>
           <View className="flex-row items-center">
