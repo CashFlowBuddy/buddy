@@ -62,6 +62,7 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoComplete="email"
+                importantForAutofill="yes"
                 autoCapitalize="none"
                 onSubmitEditing={onEmailSubmitEditing}
                 returnKeyType="next"
@@ -85,6 +86,8 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
                 ref={passwordInputRef}
                 id="password"
                 secureTextEntry
+                autoComplete="password"
+                importantForAutofill="yes"
                 value={password}
                 onChangeText={setPassword}
                 returnKeyType="send"
