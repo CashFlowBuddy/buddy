@@ -58,10 +58,10 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
               <Input
                 id="email"
                 placeholder="m@example.com"
-                value={email}
+                defaultValue={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
-                autoComplete="email"
+                autoComplete="username"
                 importantForAutofill="yes"
                 autoCapitalize="none"
                 onSubmitEditing={onEmailSubmitEditing}
@@ -88,10 +88,10 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
                 secureTextEntry
                 autoComplete="password"
                 importantForAutofill="yes"
-                value={password}
+                defaultValue={password}
                 onChangeText={setPassword}
                 returnKeyType="send"
-                onSubmitEditing={onSubmit}
+                // onSubmitEditing={onSubmit}
               />
             </View>
             <Button className="w-full" onPress={onSubmit}>
