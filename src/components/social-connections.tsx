@@ -16,10 +16,13 @@ const SOCIAL_CONNECTION_STRATEGIES = [
 export function SocialConnections() {
   const { colorScheme } = useColorScheme();
 
+  const redirectUrl = Linking.createURL('/auth/callback');
+
   const handleLogin = async () => {
     try {
       await authClient.signIn.social({
         provider: 'github',
+        callbackURL: redirectUrl,
       });
     } catch (err) {
       console.log('Social login error:', err);
