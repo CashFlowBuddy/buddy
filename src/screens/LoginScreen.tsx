@@ -1,17 +1,24 @@
-import { View, Text, Button } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../navigation/AuthNavigation';
+import { View } from "react-native";
+import { SignInForm } from "@/components/sign-in-form";
+import { useThemeContext } from "../theme/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { AuthStackParamList } from "@/navigation/AuthNavigation";
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+export default function LoginScreen() {
+  const { colorScheme } = useThemeContext();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
-export default function LoginScreen({ navigation }: Props) {
   return (
-    <View>
-      <Text>Login</Text>
-      <Button
-        title="Go to Register"
-        onPress={() => navigation.navigate('Register')}
-      />
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        padding: 16,
+        backgroundColor: colorScheme === "dark" ? "#0a0a0a" : "#ffffff",
+      }}
+    >
+      <SignInForm onSignUpPress={() => navigation.navigate("Register")} />
     </View>
   );
 }
