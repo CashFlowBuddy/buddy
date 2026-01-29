@@ -30,25 +30,25 @@ export default function HomeScreen() {
                 }}
             >
                 <View className="flex-row items-center gap-2">
-                    <Text className="flex-1 text-lg font-semibold">Home</Text>
-                    <Button variant="outline" size="sm" onPress={handleLogout}>
-                        <Text>Log out</Text>
-                    </Button>
-                    <Button variant="outline" size="sm" onPress={toggleTheme}>
-                        <Text>Toggle Theme</Text>
-                    </Button>
+                    
                 </View>
             </View>
 
             <PagerView style={{ flex: 1 }} initialPage={0}>
                 <View key="1" style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <Text>Page 1</Text>
+                    <Text>Home</Text>
                 </View>
                 <View key="2" style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <Text>Page 2</Text>
+                    <Text>Search</Text>
                 </View>
                 <View key="3" style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <Text>Page 3</Text>
+                    <Text>Sell</Text>
+                </View>
+                <View key="4" style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Text>Inbox</Text>
+                </View>
+                <View key="5" style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Text>Profile</Text>
                 </View>
             </PagerView>
         </View>
