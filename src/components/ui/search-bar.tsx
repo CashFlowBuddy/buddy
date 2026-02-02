@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Platform, TextInput, View, Pressable } from 'react-native';
 import type { TextInputProps } from 'react-native';
 import { cn } from '@/lib/utils';

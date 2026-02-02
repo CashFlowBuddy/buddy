@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import MessagePage from "./pages/MessagePage";
 import SellPage from "./pages/SellPage";
 import { UserMenu } from "@/components/user-menu";
+import { SearchBar } from "@/components/ui/search-bar";
 
 export default function HomeScreen() {
     return (
@@ -23,6 +24,12 @@ export default function HomeScreen() {
             >
                 <View className="flex-row items-center gap-2">
                     <Text className="flex-1 text-lg font-semibold">Home</Text>
+                    <SearchBar
+                        className="flex-1"
+                        value=""
+                        onChangeText={() => {}}
+                        onClear={() => {}}
+                    />
                     <UserMenu />
                 </View>
             </View>
