@@ -14,7 +14,6 @@ import { Text } from '@/components/ui/text';
 import * as React from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { authClient } from '@/lib/auth-client';
-import * as z from 'zod';
 
 type SignUpFormProps = {
   onSignInPress?: () => void;
