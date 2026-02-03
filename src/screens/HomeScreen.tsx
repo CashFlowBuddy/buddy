@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { StatusBar, View } from "react-native";
 import PagerView from "react-native-pager-view";
 import { Text } from "@/components/ui/text";
 import HomePage from "./pages/HomePage";
@@ -17,13 +17,11 @@ export default function HomeScreen() {
             <View
                 style={{
                     paddingHorizontal: 16,
-                    paddingTop: 12,
                     paddingBottom: 12,
                     borderBottomWidth: 1,
                 }}
             >
                 <View className="flex-row items-center gap-2">
-                    <Text className="flex-1 text-lg font-semibold">Home</Text>
                     <SearchBar
                         className="flex-1"
                         value=""

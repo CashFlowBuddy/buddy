@@ -1,7 +1,7 @@
 import { Platform, TextInput, View, Pressable } from 'react-native';
 import type { TextInputProps } from 'react-native';
 import { cn } from '@/lib/utils';
-import { Search, X } from 'lucide-react-native';
+import { X, Search } from 'lucide-react-native';
 
 type SearchBarProps = TextInputProps & {
   value: string;
@@ -18,12 +18,7 @@ function SearchBar({
   ...props
 }: SearchBarProps) {
   return (
-    <View className="relative w-full flex-row items-center">
-      <Search
-        size={18}
-        className="absolute left-3 z-10 text-muted-foreground"
-      />
-
+    <View className="flex-row relative w-4/5">
       <TextInput
         value={value}
         onChangeText={onChangeText}
