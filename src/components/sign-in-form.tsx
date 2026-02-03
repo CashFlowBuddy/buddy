@@ -91,7 +91,7 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
                 defaultValue={password}
                 onChangeText={setPassword}
                 returnKeyType="send"
-                // onSubmitEditing={onSubmit}
+                onSubmitEditing={onSubmit}
               />
             </View>
             <Button className="w-full" onPress={onSubmit}>

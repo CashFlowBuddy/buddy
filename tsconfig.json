@@ -3,6 +3,8 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "baseUrl": ".",
+    "types": ["react", "react-native"],
+    "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"]
     }
