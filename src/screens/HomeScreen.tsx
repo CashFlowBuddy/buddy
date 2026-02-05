@@ -1,13 +1,14 @@
-import { StatusBar, View } from "react-native";
+import { View } from "react-native";
 import PagerView from "react-native-pager-view";
-import { Text } from "@/components/ui/text";
 import HomePage from "./pages/HomePage";
 import MessagePage from "./pages/MessagePage";
 import SellPage from "./pages/SellPage";
-import { UserMenu } from "@/components/user-menu";
 import { SearchBar } from "@/components/ui/search-bar";
+import { authClient } from "../lib/auth-client";
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
 export default function HomeScreen() {
+    const { data: session } = authClient.useSession();
     return (
         <View
             style={{
@@ -28,7 +29,9 @@ export default function HomeScreen() {
                         onChangeText={() => {}}
                         onClear={() => {}}
                     />
-                    <UserMenu />
+                    <Avatar alt="">
+                        <AvatarImage source={session?.user?.image ? { uri: session.user.image } : undefined} className="size-8" />
+                    </Avatar>
                 </View>
             </View>
 
