@@ -2,10 +2,10 @@ import React from "react";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 
-export default function HomePage() {
+export default function SellScreen() {
     return (
         <View>
-            <Text>Home</Text>
+            <Text>Sell</Text>
         </View>
     )
 }
