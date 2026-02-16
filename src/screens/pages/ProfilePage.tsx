@@ -1,10 +1,13 @@
 import React from "react";
 import { authClient } from "../../lib/auth-client";
-import { View, Image } from "react-native";
+import { View } from "react-native";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export default function ProfilePage() {
   const { data: session } = authClient.useSession();
@@ -14,29 +17,50 @@ export default function ProfilePage() {
   }
   return (
     <View className="flex-1 bg-background py-6">
-      <Text className="text-2xl font-bold mb-4">Profile</Text>
       <Separator orientation="horizontal" />
-      <View className="items-center-safe flex-row gap-4 ">
-        <Avatar alt={session?.user?.name || "User"} className="mt-4">
-          <AvatarImage source={{ uri: session?.user?.image }} />
-          <AvatarFallback>
-            <Text>{session?.user?.name ? session.user.name[0] : "U"}</Text>
-          </AvatarFallback>
-        </Avatar>
-        <Text className="text-lg font-semibold">
-          {session?.user?.name || "User"}
-        </Text>
-      </View>
-      <Separator orientation="horizontal" className="my-4" />
+      <Card className="m-4 p-4 w-fit">
+        <CardHeader className="text-lg font-semibold mb-4">
+          <Text variant="h2">Profile</Text>
+        </CardHeader>
+        <View className="items-center flex-row">
+          <Avatar alt={session?.user?.name || "User"}>
+            <AvatarImage source={{ uri: session?.user?.image }} className="" />
+            <AvatarFallback>
+              <Text>{session?.user?.name ? session.user.name[0] : "U"}</Text>
+            </AvatarFallback>
+          </Avatar>
+          <Text className="text-lg font-semibold ml-4">
+            {session?.user?.name || "User"}
+          </Text>
+        </View>
+      </Card>
+      <Separator orientation="horizontal" className="mb-4" />
+      <Card className="m-4 p-4 w-fit">
+        <CardHeader className="text-lg font-semibold mb-4">
+          <Text variant="h2"> Account Details</Text>
+        </CardHeader>
+        <View className="items-baseline">
+          <Text className="text-base">
+            Email: {session?.user?.email || "Not provided"}
+          </Text>
+          <Badge variant={session?.user?.emailVerified ? "default" : "destructive"} className="ml-2">
+            <Text>
+              {session?.user?.emailVerified ? "Verified" : "Unverified"}
+            </Text>
+          </Badge>
+        </View>
+      </Card>
+
+      <Separator orientation="horizontal" className="mb-4" />
       <View className="px-4">
         <Button
-          variant="outline"
+          variant="destructive"
           className="w-full mb-2"
           onPress={handleSignOut}
-        >   
+        >
           <Text>Sign Out</Text>
         </Button>
       </View>
     </View>
   );
-}
+} // TODO: favourites (button), sells(button), profile details, account settings, notifications, help center
