@@ -8,7 +8,7 @@ import LottieView from "lottie-react-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { NAV_THEME } from "./src/lib/theme";
 import { useColorScheme } from "nativewind";
-import { View, StatusBar } from "react-native";
+import { StatusBar, View } from "react-native";
 
 function AppContent() {
   const { colorScheme } = useColorScheme();
@@ -25,15 +25,21 @@ function AppContent() {
 
   if (!timerDone || sessionLoading) {
     return (
-      <LottieView
-        source={require("./assets/splashAnimation.json")}
-        autoPlay
-        loop
+      <View
         style={{
           flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
           backgroundColor: colorScheme === "dark" ? "#222" : "#fff",
         }}
-      />
+      >
+        <LottieView
+          source={require("./assets/splashAnimation.json")}
+          autoPlay
+          loop
+          style={{ width: 200, height: 200 }}
+        />
+      </View>
     );
   }
 
