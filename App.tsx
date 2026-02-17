@@ -8,7 +8,8 @@ import LottieView from "lottie-react-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { NAV_THEME } from "./src/lib/theme";
 import { useColorScheme } from "nativewind";
-import { View, StatusBar } from "react-native";
+import { StatusBar, View } from "react-native";
+import { Text } from "./src/components/ui/text";
 
 function AppContent() {
   const { colorScheme } = useColorScheme();
@@ -25,15 +26,26 @@ function AppContent() {
 
   if (!timerDone || sessionLoading) {
     return (
-      <LottieView
-        source={require("./assets/splashAnimation.json")}
-        autoPlay
-        loop
+      <View
         style={{
           flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
           backgroundColor: colorScheme === "dark" ? "#222" : "#fff",
         }}
-      />
+      >
+        <View style={{ alignItems: "center" }}>
+          <LottieView
+            source={require("./assets/splashAnimation.json")}
+            autoPlay
+            loop
+            style={{ width: 300, height: 300 }}
+          />
+          <Text className="text-3xl font-semibold" style={{ marginTop: -50 }}>
+            CashFlowBuddy
+          </Text>
+        </View>
+      </View>
     );
   }
 

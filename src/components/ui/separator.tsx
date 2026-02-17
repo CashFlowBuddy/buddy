@@ -11,11 +11,12 @@ function Separator({
     <SeparatorPrimitive.Root
       decorative={decorative}
       orientation={orientation}
-      className={cn(
-        'bg-border shrink-0',
-        orientation === 'horizontal' ? 'h-[1px] w-full' : 'h-full w-[1px]',
-        className
-      )}
+      style={{
+        ...(orientation === 'horizontal' 
+          ? { height: 1, borderTopWidth: 1, borderTopColor: 'hsl(0 0% 80%)' }
+          : { width: 1, borderLeftWidth: 1, borderLeftColor: 'hsl(0 0% 80%)' })
+      }}
+      className={cn('shrink-0', className)}
       {...props}
     />
   );
