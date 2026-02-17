@@ -73,6 +73,11 @@ export default function ProfilePage() {
             <Text>Notifications</Text>
             <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
           </Button>
+            <Separator orientation="horizontal"/>
+          <Button variant="ghost" className="justify-between" onPress={() => {}}>
+            <Text>Privacy</Text>
+            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
+          </Button>
         </Card>
         <Separator orientation="horizontal" className="mb-4" />
         <View className="px-4">
