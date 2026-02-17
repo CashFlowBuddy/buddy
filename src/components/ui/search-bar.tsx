@@ -18,12 +18,12 @@ function SearchBar({
   ...props
 }: SearchBarProps) {
   return (
-    <View className="flex-row relative w-4/5">
+    <View className="flex-row relative w-full">
       <TextInput
         value={value}
         onChangeText={onChangeText}
         editable={editable}
-        placeholder="Search…"
+        placeholder="Search… 🔎"
         returnKeyType="search"
         autoCapitalize="none"
         autoCorrect={false}
@@ -55,8 +55,8 @@ function SearchBar({
             onChangeText('');
             onClear?.();
           }}
-          hitSlop={8}
-          className="absolute right-3"
+          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+          className="absolute right-3 top-1/2 -translate-y-1/2"
         >
           <X size={16} className="text-muted-foreground" />
         </Pressable>
