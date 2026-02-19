@@ -95,7 +95,7 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
               />
             </View>
             <Button className="w-full" onPress={onSubmit}>
-              <Text>Continue</Text>
+              <Text>Sign in</Text>
             </Button>
           </View>
           {!!error && <Text className="text-destructive text-sm">{error}</Text>}
