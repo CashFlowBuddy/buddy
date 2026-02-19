@@ -5,6 +5,7 @@ import { SearchBar } from "@/components/ui/search-bar";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductCard } from "@/components/product-card";
+import { faker } from "@faker-js/faker";
 
 type HomePageProps = {
   setPagerScrollEnabled?: (enabled: boolean) => void;
@@ -15,7 +16,7 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
   const [searchQuery, setSearchValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any[]>([]);
-  const [allDATA, setAllData] = useState<any[]>([]); // This should be replaced with actual data fetching logic
+  const [allDATA, setAllData] = useState<any[]>([]);
 
   useEffect(() => {
     return () => {
@@ -24,13 +25,13 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
   }, [setPagerScrollEnabled]);
 
   useEffect(() => {
-    // Simulate data fetching
     setIsLoading(true);
     setTimeout(() => {
-      // TODO: Replace with actual data and implement search functionality
       const mockData = Array.from({ length: 50 }, (_, i) => ({
-        id: String(i + 1),
-        title: `Item ${i + 1}`,
+        id: faker.string.uuid(),
+        title: faker.commerce.productName(),
+        price: parseFloat(faker.commerce.price()),
+        description: faker.commerce.productDescription(),
       }));
       setAllData(mockData);
       setIsLoading(false);
@@ -45,15 +46,14 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // TODO: Replace with actual item component
   const Item = ({ item }: { item: any }) => (
     <ProductCard
-      className="m-2"
+      className="flex-1"
       title={item.title}
-      price={Math.random() * 100}
+      price={item.price}
       images={Array.from(
         { length: 3 },
-        (_, i) => `https://picsum.photos/200/300?random=${i}`,
+        (_, i) => `https://picsum.photos/200/300?random=${item.id}-${i}`,
       )}
       favourite={false}
       uid={item.id}
@@ -64,7 +64,7 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
 
   return (
     <SafeAreaView className="flex-1">
-      <View className="px-4">
+      <View className="px-6 pb-4">
         <SearchBar
           value={searchQuery}
           onChangeText={handleSearch}
@@ -89,7 +89,9 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
           numColumns={2}
           renderItem={({ item }) => <Item item={item} />}
           keyExtractor={(item) => item.id}
-          className="mx-auto"
+          columnWrapperStyle={{ gap: 8 }}
+          className="px-6"
+          contentContainerStyle={{ gap: 8 }}
           ListEmptyComponent={() => (
             <View className="p-4">
               <Text className="text-center text-gray-500">No items found</Text>
