@@ -1,7 +1,8 @@
 import { Platform, TextInput, View, Pressable } from 'react-native';
 import type { TextInputProps } from 'react-native';
 import { cn } from '@/lib/utils';
-import { X} from 'lucide-react-native';
+import { X } from 'lucide-react-native';
+import { useThemeContext } from '@/theme/ThemeContext';
 
 type SearchBarProps = TextInputProps & {
   value: string;
@@ -17,18 +18,19 @@ function SearchBar({
   editable = true,
   ...props
 }: SearchBarProps) {
+  const currentTheme = useThemeContext();
   return (
-    <View className="flex-row relative w-4/5">
+    <View className="flex-row relative w-full">
       <TextInput
         value={value}
         onChangeText={onChangeText}
         editable={editable}
-        placeholder="Search…"
+        placeholder="Search… 🔎"
         returnKeyType="search"
         autoCapitalize="none"
         autoCorrect={false}
         className={cn(
-          'dark:bg-input/30 border-input bg-background text-foreground flex h-10 w-full min-w-0 rounded-md border px-3 py-1 pl-10 pr-10 text-base leading-5 shadow-sm shadow-black/5 sm:h-9',
+          'dark:bg-input/30 border-input bg-background text-foreground flex h-10 w-full min-w-0 rounded-md border px-2 py-1 pl-10 pr-10 text-base leading-5 shadow-sm shadow-black/5 sm:h-9',
           editable === false &&
             cn(
               'opacity-50',
@@ -55,10 +57,10 @@ function SearchBar({
             onChangeText('');
             onClear?.();
           }}
-          hitSlop={8}
-          className="absolute right-3"
+          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+          className="absolute right-3 h-full justify-center items-center"
         >
-          <X size={16} className="text-muted-foreground" />
+          <X size={16} className="text-muted-foreground" color={currentTheme.colors.mutedForeground} />
         </Pressable>
       )}
     </View>

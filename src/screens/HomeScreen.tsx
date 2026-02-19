@@ -1,3 +1,4 @@
+import React, { useCallback, useRef } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 import HomePage from "./pages/HomePage";
@@ -5,23 +6,37 @@ import MessagePage from "./pages/MessagePage";
 import ProfilePage from "./pages/ProfilePage";
 
 export default function HomeScreen() {
-    return (
+  const pagerRef = useRef<PagerView>(null);
+  const setPagerScrollEnabled = useCallback((enabled: boolean) => {
+    pagerRef.current?.setScrollEnabled(enabled);
+  }, []);
+
+  return (
+    <View
+      style={{
+        flex: 1,
+      }}
+    >
+      <PagerView style={{ flex: 1 }} initialPage={0} ref={pagerRef}>
         <View
-            style={{
-                flex: 1,
-            }}
+          key="1"
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-            <PagerView style={{ flex: 1 }} initialPage={0}>
-                <View key="1" style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <HomePage />
-                </View>
-                <View key="2" style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <MessagePage />
-                </View>
-                <View key="3" style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <ProfilePage />
-                </View>
-            </PagerView>
+          <HomePage setPagerScrollEnabled={setPagerScrollEnabled} />
         </View>
-    );
+        <View
+          key="2"
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <MessagePage />
+        </View>
+        <View
+          key="3"
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ProfilePage />
+        </View>
+      </PagerView>
+    </View>
+  );
 }

@@ -98,7 +98,7 @@ export function SignUpForm({ onSignInPress }: SignUpFormProps) {
               />
             </View>
             <Button className="w-full" onPress={onSubmit}>
-              <Text>Continue</Text>
+              <Text>Sign up</Text>
             </Button>
           </View>
           <Text className="text-center text-sm">
