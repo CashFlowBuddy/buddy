@@ -4,8 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { SearchBar } from "@/components/ui/search-bar";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProductCard } from "@/components/product-card";
 
-export default function HomePage() {
+type HomePageProps = {
+  setPagerScrollEnabled?: (enabled: boolean) => void;
+};
+
+export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -13,11 +18,17 @@ export default function HomePage() {
   const [allDATA, setAllData] = useState<any[]>([]); // This should be replaced with actual data fetching logic
 
   useEffect(() => {
+    return () => {
+      setPagerScrollEnabled?.(true);
+    };
+  }, [setPagerScrollEnabled]);
+
+  useEffect(() => {
     // Simulate data fetching
     setIsLoading(true);
     setTimeout(() => {
-        // TODO: Replace with actual data and implement search functionality
-      const mockData = Array.from({ length: 5000 }, (_, i) => ({
+      // TODO: Replace with actual data and implement search functionality
+      const mockData = Array.from({ length: 50 }, (_, i) => ({
         id: String(i + 1),
         title: `Item ${i + 1}`,
       }));
@@ -30,16 +41,25 @@ export default function HomePage() {
     setSearchValue(query);
   };
 
-
   const filteredDATA = allDATA.filter((item) =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-    // TODO: Replace with actual item component
+  // TODO: Replace with actual item component
   const Item = ({ item }: { item: any }) => (
-    <View className="p-4 border-b border-gray-200">
-      <Text className="text-lg">{item.title}</Text>
-    </View>
+    <ProductCard
+      className="m-2"
+      title={item.title}
+      price={Math.random() * 100}
+      images={Array.from(
+        { length: 3 },
+        (_, i) => `https://picsum.photos/200/300?random=${i}`,
+      )}
+      favourite={false}
+      uid={item.id}
+      onCarouselTouchStart={() => setPagerScrollEnabled?.(false)}
+      onCarouselTouchEnd={() => setPagerScrollEnabled?.(true)}
+    />
   );
 
   return (
@@ -66,8 +86,10 @@ export default function HomePage() {
       ) : (
         <FlatList
           data={filteredDATA}
+          numColumns={2}
           renderItem={({ item }) => <Item item={item} />}
           keyExtractor={(item) => item.id}
+          className="mx-auto"
           ListEmptyComponent={() => (
             <View className="p-4">
               <Text className="text-center text-gray-500">No items found</Text>
