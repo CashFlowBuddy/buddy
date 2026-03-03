@@ -2,9 +2,11 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import MessagePage from "@/screens/pages/MessagePage";
 import ChatScreen from "@/screens/pages/ChatScreen";
 
+import type { User } from "@/lib/interfaces";
+
 export type MessageStackParamList = {
   ChatRooms: undefined;
-  Chat: { chatRoomId: string; title: string };
+  Chat: { chatRoomId: string; title: string; users: User[] };
 };
 
 const Stack = createNativeStackNavigator<MessageStackParamList>();

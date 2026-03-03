@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
@@ -12,14 +15,20 @@ import type { MessageStackParamList } from "@/navigation/MessageNavigation";
 type Props = NativeStackScreenProps<MessageStackParamList, "Chat">;
 
 export default function ChatScreen({ route }: Props) {
-  const { chatRoomId, title } = route.params;
+  const { chatRoomId, users } = route.params;
   const { data: session } = authClient.useSession();
-  const currentUserId =
-    (session?.user as { id?: string } | undefined)?.id ?? "";
+  const currentUserId = (session?.user as { id?: string } | undefined)?.id ?? "";
+
+  const userNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const u of users) {
+      map[u.id] = u.name;
+    }
+    return map;
+  }, [users]);
 
   const {
     isConnected,
-    connectionError,
     joinedRoomId,
     joinRoom,
     leaveRoom,
@@ -30,6 +39,11 @@ export default function ChatScreen({ route }: Props) {
   } = useChatSocket(currentUserId);
 
   const [messageInput, setMessageInput] = useState("");
+
+  const reversedMessages = useMemo(
+    () => [...messages].reverse(),
+    [messages],
+  );
 
   React.useEffect(() => {
     if (isConnected && chatRoomId && joinedRoomId !== chatRoomId) {
@@ -63,65 +77,54 @@ export default function ChatScreen({ route }: Props) {
       className="flex-1 w-full bg-background"
       edges={["left", "right"]}
     >
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
-        <View className="flex-1 px-4 py-3" style={{ alignSelf: "stretch" }}>
-          <View className="mb-3">
-            <Text variant="small">
-              {isConnected ? "Connected" : "Disconnected"}
-            </Text>
-            {connectionError ? (
-              <Text variant="muted" className="text-destructive mt-1">
-                {connectionError}
+      <FlatList
+        data={reversedMessages}
+        inverted
+        keyExtractor={(item, index) => item.id || `${index}`}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}
+        renderItem={({ item }) => {
+          const isOwnMessage =
+            currentUserId.length > 0 &&
+            item.byUserId === currentUserId;
+
+          return (
+            <View
+              className={`rounded-md px-3 py-2 border ${
+              isOwnMessage 
+                ? "self-end border-secondary"
+                : "self-start border-primary bg-primary-foreground"
+              }`}
+            >
+              {!isOwnMessage ? (
+              <Text variant="small" className="mb-1">
+                {userNameMap[item.byUserId] ?? item.byUserId}
               </Text>
-            ) : null}
+              ) : null}
+              <Text>{item.content}</Text>
+              <Text variant="muted" className="mt-1">
+              {new Date(item.createdAt).toLocaleTimeString()}
+              </Text>
+            </View>
+          );
+        }}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center py-10">
+            <Text variant="muted">
+              No messages yet. Start the conversation.
+            </Text>
           </View>
+        }
+      />
 
-          <FlatList
-            data={messages}
-            keyExtractor={(item, index) => item.id || `${index}`}
-            className="flex-1"
-            contentContainerStyle={{ paddingBottom: 12, gap: 8 }}
-            renderItem={({ item }) => {
-              const isOwnMessage =
-                currentUserId.length > 0 &&
-                item.byUserId === currentUserId;
-
-              return (
-                <View
-                  className={`rounded-md border px-3 py-2 ${isOwnMessage ? "self-end" : "self-start"}`}
-                >
-                  {!isOwnMessage ? (
-                    <Text variant="small" className="mb-1">
-                      {item.byUserId}
-                    </Text>
-                  ) : null}
-                  <Text>{item.content}</Text>
-                  <Text variant="muted" className="mt-1">
-                    {new Date(item.createdAt).toLocaleTimeString()}
-                  </Text>
-                </View>
-              );
-            }}
-            ListEmptyComponent={
-              <View className="flex-1 items-center justify-center py-10">
-                <Text variant="muted">
-                  No messages yet. Start the conversation.
-                </Text>
-              </View>
-            }
-          />
-
-          <View className="mt-2 min-h-6 justify-center">
+      <KeyboardStickyView>
+        <View className="px-4 pb-4 bg-background">
+          <View className="min-h-2 justify-center">
             {typingLabel ? (
               <Text variant="muted">{typingLabel}</Text>
             ) : null}
           </View>
-
-          <View className="mt-2 flex-row items-center gap-2">
+          <View className="flex-row items-center gap-2">
             <Input
               className="flex-1"
               value={messageInput}
@@ -138,7 +141,7 @@ export default function ChatScreen({ route }: Props) {
             </Button>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardStickyView>
     </SafeAreaView>
   );
 }

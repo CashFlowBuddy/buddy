@@ -1,25 +1,30 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  ScrollView,
-  Text,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
+import { View, ScrollView, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SearchBar } from "@/components/ui/search-bar";
+import { Text } from "@/components/ui/text";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChatRoom, Message } from "@/lib/interfaces";
 import { getAuthCookieHeader } from "@/lib/auth-client";
 import type { MessageStackParamList } from "@/navigation/MessageNavigation";
+import { authClient } from "@/lib/auth-client";
 
-type NavigationProp = NativeStackNavigationProp<MessageStackParamList, "ChatRooms">;
+type NavigationProp = NativeStackNavigationProp<
+  MessageStackParamList,
+  "ChatRooms"
+>;
 
 export default function MessagePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<NavigationProp>();
+
+  const { data: session } = authClient.useSession();
 
   useEffect(() => {
     fetchChatRooms();
@@ -88,59 +93,107 @@ export default function MessagePage() {
   };
 
   return (
-    <View className="flex-1 bg-white">
-      <SearchBar
-        value={searchQuery}
-        onChangeText={handleSearch}
-        onClear={() => setSearchQuery("")}
-      />
+    <SafeAreaView className="flex-1 bg-background">
+      <View className="px-6 pb-4">
+        <SearchBar
+          value={searchQuery}
+          onChangeText={handleSearch}
+          onClear={() => setSearchQuery("")}
+        />
+      </View>
+
       {loading ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0000ff" />
+        <View className="px-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <View key={i} className="flex-row items-center gap-3 py-4">
+              <Skeleton className="size-12 rounded-full" />
+              <View className="flex-1 gap-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+                <Skeleton className="h-3 w-full" />
+              </View>
+              <Skeleton className="h-3 w-12" />
+            </View>
+          ))}
+        </View>
+      ) : filteredDATA.length === 0 ? (
+        <View className="flex-1 items-center justify-center py-10">
+          <Text variant="muted">No conversations yet.</Text>
         </View>
       ) : (
-        <ScrollView className="w-full px-4">
-          {filteredDATA.map((room) => {
+        <ScrollView className="w-full px-6">
+          {filteredDATA.map((room, index) => {
             const lastMessage = room.messages[room.messages.length - 1];
             const otherUsers = room.users.filter(
-              (u) => u.id !== room.users[0].id,
+              (u) => u.id !== session?.user?.id,
             );
+            const firstOther = otherUsers[0];
 
             return (
-              <Pressable
-                key={room.id}
-                className="border-b border-gray-200 py-4 active:bg-gray-50"
-                onPress={() =>
-                  navigation.navigate("Chat", {
-                    chatRoomId: room.id,
-                    title: room.forListing.title,
-                  })
-                }
-              >
-                <Text className="text-base font-semibold text-gray-900">
-                  {room.forListing.title}
-                </Text>
-                <Text className="text-sm text-gray-600 mt-1">
-                  {otherUsers.map((u) => u.name).join(", ")}
-                </Text>
-                {lastMessage && (
-                  <Text
-                    className="text-sm text-gray-600 mt-2"
-                    numberOfLines={1}
+              <React.Fragment key={room.id}>
+                <Pressable
+                  className="flex-row items-center gap-3 py-4 active:opacity-70"
+                  onPress={() =>
+                    navigation.navigate("Chat", {
+                      chatRoomId: room.id,
+                      title: room.forListing.title,
+                      users: room.users,
+                    })
+                  }
+                >
+                  <Avatar
+                    alt={firstOther?.name ?? "User"}
+                    className="size-12"
                   >
-                    {lastMessage.content}
-                  </Text>
+                    <AvatarImage
+                      source={{ uri: firstOther?.image ?? undefined }}
+                    />
+                    <AvatarFallback>
+                      <Text className="text-sm font-semibold">
+                        {firstOther?.name?.[0]?.toUpperCase() ?? "?"}
+                      </Text>
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <View className="flex-1 gap-0.5">
+                    <View className="flex-row items-center justify-between">
+                      <Text className="text-base font-semibold text-foreground">
+                        {otherUsers.map((u) => u.name).join(", ")}
+                      </Text>
+                      <Text variant="muted" className="text-xs">
+                        {lastMessage
+                          ? formatTime(lastMessage.createdAt)
+                          : ""}
+                      </Text>
+                    </View>
+
+                    <Text variant="small" className="text-muted-foreground">
+                      {room.forListing.title}
+                    </Text>
+
+                    {lastMessage ? (
+                      <Text
+                        variant="muted"
+                        className="mt-0.5"
+                        numberOfLines={1}
+                      >
+                        {lastMessage.content}
+                      </Text>
+                    ) : (
+                      <Text variant="muted" className="mt-0.5 italic">
+                        No messages yet
+                      </Text>
+                    )}
+                  </View>
+                </Pressable>
+                {index < filteredDATA.length - 1 && (
+                  <Separator orientation="horizontal" />
                 )}
-                <Text className="text-xs text-gray-400 mt-1">
-                  {lastMessage
-                    ? formatTime(lastMessage.createdAt)
-                    : "No messages"}
-                </Text>
-              </Pressable>
+              </React.Fragment>
             );
           })}
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
