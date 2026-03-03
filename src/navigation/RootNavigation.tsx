@@ -9,8 +9,7 @@ const Stack = createNativeStackNavigator();
 export default function RootNavigation() {
   const { data: session } = authClient.useSession();
 
-  //const isLoggedIn = !!session?.user;
-  const isLoggedIn = true; // TODO: Replace with actual authentication logic
+  const isLoggedIn = !!session?.user;
 
   return (
     <View style={{ flex: 1, paddingTop: StatusBar.currentHeight || 0}} className="bg-background">

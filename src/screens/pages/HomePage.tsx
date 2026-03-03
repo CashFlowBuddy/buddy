@@ -52,7 +52,7 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
       title={item.title}
       price={item.price}
       images={Array.from(
-        { length: 3 },
+        { length: 8 },
         (_, i) => `https://picsum.photos/200/300?random=${item.id}-${i}`,
       )}
       favourite={false}

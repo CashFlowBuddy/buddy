@@ -10,6 +10,7 @@ import { NAV_THEME } from "./src/lib/theme";
 import { useColorScheme } from "nativewind";
 import { StatusBar, View } from "react-native";
 import { Text } from "./src/components/ui/text";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 function AppContent() {
   const { colorScheme } = useColorScheme();
@@ -62,8 +63,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent/>
-    </ThemeProvider>
+    <KeyboardProvider>
+      <ThemeProvider>
+        <AppContent/>
+      </ThemeProvider>
+    </KeyboardProvider>
   );
 }
