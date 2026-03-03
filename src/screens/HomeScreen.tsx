@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 import HomePage from "./pages/HomePage";
-import MessagePage from "./pages/MessagePage";
+import MessageNavigation from "@/navigation/MessageNavigation";
 import ProfilePage from "./pages/ProfilePage";
 
 export default function HomeScreen() {
@@ -26,9 +26,9 @@ export default function HomeScreen() {
         </View>
         <View
           key="2"
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={{ flex: 1 }}
         >
-          <MessagePage />
+          <MessageNavigation />
         </View>
         <View
           key="3"
