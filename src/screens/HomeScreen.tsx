@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
-import HomePage from "./pages/HomePage";
+import HomePage from "./pages/ListingPage";
 import MessageNavigation from "@/navigation/MessageNavigation";
 import ProfilePage from "./pages/ProfilePage";
 

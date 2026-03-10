@@ -13,9 +13,25 @@ export interface Message {
   updatedAt: string;
 }
 
+export interface ListingPicture {
+  id: string;
+  url: string;
+  listingId: string;
+}
+
 export interface Listing {
   id: string;
   title: string;
+  description?: string;
+  price?: number;
+  category?: string;
+  status?: string;
+  url?: string;
+  userId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  pictures?: ListingPicture[];
+  user?: User;
 }
 
 export interface ChatRoom {
