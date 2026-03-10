@@ -5,7 +5,7 @@ import { SearchBar } from "@/components/ui/search-bar";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductCard } from "@/components/product-card";
-import { faker } from "@faker-js/faker";
+import type { Listing } from "@/lib/interfaces";
 
 type HomePageProps = {
   setPagerScrollEnabled?: (enabled: boolean) => void;
@@ -15,8 +15,7 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchValue] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any[]>([]);
-  const [allDATA, setAllData] = useState<any[]>([]);
+  const [allDATA, setAllData] = useState<Listing[]>([]);
 
   useEffect(() => {
     return () => {
@@ -25,18 +24,32 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
   }, [setPagerScrollEnabled]);
 
   useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      const mockData = Array.from({ length: 50 }, (_, i) => ({
-        id: faker.string.uuid(),
-        title: faker.commerce.productName(),
-        price: parseFloat(faker.commerce.price()),
-        description: faker.commerce.productDescription(),
-      }));
-      setAllData(mockData);
-      setIsLoading(false);
-    }, 1000);
+    fetchListings();
   }, []);
+
+  const fetchListings = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch("https://api.saserver.hu/api/listings", {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setAllData(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching listings:", err);
+      setError("Failed to load listings");
+      setAllData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = (query: string) => {
     setSearchValue(query);
@@ -46,15 +59,16 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const Item = ({ item }: { item: any }) => (
+  const Item = ({ item }: { item: Listing }) => (
     <ProductCard
       className="flex-1"
       title={item.title}
-      price={item.price}
-      images={Array.from(
-        { length: 8 },
-        (_, i) => `https://picsum.photos/200/300?random=${item.id}-${i}`,
-      )}
+      price={item.price ?? 0}
+      images={
+        item.pictures && item.pictures.length > 0
+          ? item.pictures.map((p) => p.url)
+          : ["https://placehold.co/200x300/png?text=No+Image"]
+      }
       favourite={false}
       uid={item.id}
       onCarouselTouchStart={() => setPagerScrollEnabled?.(false)}
