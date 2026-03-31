@@ -36,14 +36,14 @@ function AppSelect({
       onValueChange={(nextOption) => onValueChange(nextOption?.value ?? '')}>
       <SelectPrimitive.Trigger
         className={cn(
-          'border-input bg-background flex h-10 w-full flex-row items-center justify-between rounded-md border px-3 py-2',
+          'border-input dark:bg-input/30 bg-background flex h-10 w-full flex-row items-center justify-between rounded-md border px-3 py-2 mb-4',
           disabled && 'opacity-50'
         )}>
         <SelectPrimitive.Value
           placeholder={placeholder}
           className="text-foreground text-sm"
         />
-        <ChevronDown size={16} className="text-muted-foreground" />
+        <ChevronDown size={16} className="text-muted-foreground" color={"white"} />
       </SelectPrimitive.Trigger>
 
       <SelectPrimitive.Portal>
@@ -56,7 +56,7 @@ function AppSelect({
           className="bg-popover border-border z-50 w-72 rounded-md border p-1 shadow-md shadow-black/10">
           <SelectPrimitive.ScrollUpButton>
             <View className="items-center py-1">
-              <ChevronUp size={16} className="text-muted-foreground" />
+              <ChevronUp size={16} className="text-muted-foreground" color={"white"} />
             </View>
           </SelectPrimitive.ScrollUpButton>
 
@@ -70,7 +70,7 @@ function AppSelect({
                 className="active:bg-accent flex-row items-center justify-between rounded-sm px-3 py-2">
                 <SelectPrimitive.ItemText className="text-foreground text-sm" />
                 <SelectPrimitive.ItemIndicator>
-                  <Check size={16} className="text-primary" />
+                  <Check size={16} className="text-primary" color={"white"} />
                 </SelectPrimitive.ItemIndicator>
               </SelectPrimitive.Item>
             ))}
@@ -78,7 +78,7 @@ function AppSelect({
 
           <SelectPrimitive.ScrollDownButton>
             <View className="items-center py-1">
-              <ChevronDown size={16} className="text-muted-foreground" />
+              <ChevronDown size={16} className="text-muted-foreground" color={"white"} />
             </View>
           </SelectPrimitive.ScrollDownButton>
         </SelectPrimitive.Content>

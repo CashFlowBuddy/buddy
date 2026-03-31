@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppSelect } from "@/components/ui/select";
 import { getAuthCookieHeader } from "@/lib/auth-client";
+import { ImgUpload } from "@/components/ui/img-upload";
 
 const categories = [
   { value: "ELECTRONIC", label: "Electronics" },
@@ -36,6 +37,7 @@ export default function SellsDial() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [discount, setDiscount] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
@@ -46,6 +48,7 @@ export default function SellsDial() {
     setDescription("");
     setPrice("");
     setDiscount("");
+    setSelectedImage(null);
   };
 
   const handleSubmit = async () => {
@@ -156,9 +159,9 @@ export default function SellsDial() {
 
           <Label>Price</Label>
           <Input placeholder="Enter price" className="mb-4" keyboardType="numeric" value={price} onChangeText={setPrice} />
-          
-          <Label> Discounted price (optional) </Label>
-          <Input placeholder="Enter discount" className="mb-4" keyboardType="numeric" value={discount} onChangeText={setDiscount} />
+
+          <Label>Upload Image</Label>
+          <ImgUpload onImageSelect={setSelectedImage} />
 
           {submitError ? <Text className="mb-3 text-destructive">{submitError}</Text> : null}
           {submitSuccess ? <Text className="mb-3 text-green-600">{submitSuccess}</Text> : null}
