@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react-native";
+import AccSetDial from "../dialogs/AccSetDial";
+import SellsDial from "../dialogs/SellsDial";
+import NotificationDial from "../dialogs/NotificationDial";
+import PrivacyDial from "../dialogs/PrivacyDial";
 
 export default function ProfilePage() {
   const { data: session } = authClient.useSession();
@@ -18,7 +22,6 @@ export default function ProfilePage() {
   }
   return (
     <View className="flex-1 bg-background py-6">
-
       <ScrollView>
         <Card className="mb-4 p-4 w-fit">
           <CardHeader className="text-lg font-semibold mb-4">
@@ -26,7 +29,10 @@ export default function ProfilePage() {
           </CardHeader>
           <View className="items-center flex-row">
             <Avatar alt={session?.user?.name || "User"}>
-              <AvatarImage source={{ uri: session?.user?.image }} className="" />
+              <AvatarImage
+                source={{ uri: session?.user?.image }}
+                className=""
+              />
               <AvatarFallback>
                 <Text>{session?.user?.name ? session.user.name[0] : "U"}</Text>
               </AvatarFallback>
@@ -45,7 +51,10 @@ export default function ProfilePage() {
             <Text className="text-base">
               Email: {session?.user?.email || "Not provided"}
             </Text>
-            <Badge variant={session?.user?.emailVerified ? "default" : "destructive"} className="ml-2">
+            <Badge
+              variant={session?.user?.emailVerified ? "default" : "destructive"}
+              className="ml-2"
+            >
               <Text>
                 {session?.user?.emailVerified ? "Verified" : "Unverified"}
               </Text>
@@ -54,30 +63,24 @@ export default function ProfilePage() {
         </Card>
         <Separator orientation="horizontal" className="mb-4" />
         <Card className="mb-4 p-4 w-fit">
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
+          <Button
+            variant="ghost"
+            className="justify-between"
+            onPress={() => {}}
+          >
             <Text>Favourites</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
+            <ChevronRight
+              color={useColorScheme() === "dark" ? "white" : "black"}
+            />
           </Button>
-          <Separator orientation="horizontal"/>
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
-            <Text>Sells</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
-          </Button>
-            <Separator orientation="horizontal"/>
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
-            <Text>Account Settings</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
-          </Button>
-            <Separator orientation="horizontal"/>
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
-            <Text>Notifications</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
-          </Button>
-            <Separator orientation="horizontal"/>
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
-            <Text>Privacy</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
-          </Button>
+          <Separator orientation="horizontal" />
+          <SellsDial />
+          <Separator orientation="horizontal" />
+          <AccSetDial />
+          <Separator orientation="horizontal" />
+          <NotificationDial />
+          <Separator orientation="horizontal" />
+          <PrivacyDial />
         </Card>
         <Separator orientation="horizontal" className="mb-4" />
         <View className="px-4">
@@ -90,7 +93,6 @@ export default function ProfilePage() {
           </Button>
         </View>
       </ScrollView>
-
     </View>
   );
 } // TODO: favourites (button), sells(button), profile details, account settings, notifications

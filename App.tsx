@@ -11,6 +11,11 @@ import { useColorScheme } from "nativewind";
 import { StatusBar, View } from "react-native";
 import { Text } from "./src/components/ui/text";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { TamaguiProvider } from 'tamagui';
+import config from './tamagui.config';
+import StorybookUI from './.rnstorybook';
+
+const isStorybook = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === 'true';
 
 function AppContent() {
   const { colorScheme } = useColorScheme();
@@ -52,21 +57,27 @@ function AppContent() {
 
   return (
     <>
-    <StatusBar barStyle={colorScheme === "dark" ? "light-content" : "dark-content"} />
-    <NavigationContainer theme={NAV_THEME[colorScheme]}>
-          <RootNavigator />
+      <StatusBar barStyle={colorScheme === "dark" ? "light-content" : "dark-content"} />
+      <NavigationContainer theme={NAV_THEME[colorScheme]}>
+        <RootNavigator />
       </NavigationContainer>
       <PortalHost />
-      </>
+    </>
   );
 }
 
 export default function App() {
+  if (isStorybook) {
+    return <StorybookUI />;
+  }
+
   return (
-    <KeyboardProvider>
-      <ThemeProvider>
-        <AppContent/>
-      </ThemeProvider>
-    </KeyboardProvider>
+    <TamaguiProvider config={config} defaultTheme="light">
+      <KeyboardProvider>
+        <ThemeProvider>
+          <AppContent/>
+        </ThemeProvider>
+      </KeyboardProvider>
+    </TamaguiProvider>
   );
 }
