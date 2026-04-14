@@ -11,10 +11,16 @@ import AccSetDial from "../dialogs/AccSetDial";
 import SellsDial from "../dialogs/SellsDial";
 import NotificationDial from "../dialogs/NotificationDial";
 import PrivacyDial from "../dialogs/PrivacyDial";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { AppStackParamList } from "@/navigation/AppNavigation";
+
+type NavigationProp = NativeStackNavigationProp<AppStackParamList, "Home">;
 
 export default function ProfilePage() {
   const { data: session } = authClient.useSession();
   const colorScheme = useColorScheme();
+  const navigation = useNavigation<NavigationProp>();
 
   function handleSignOut() {
     authClient.signOut();
@@ -26,7 +32,7 @@ export default function ProfilePage() {
           <View className="flex-row items-center gap-4">
             <Avatar alt={session?.user?.name || "User"}>
               <AvatarImage
-                source={{ uri: session?.user?.image }}
+                source={{ uri: session?.user?.image ?? undefined }}
               />
               <AvatarFallback>
                 <Text>{session?.user?.name ? session.user.name[0] : "U"}</Text>
@@ -52,7 +58,7 @@ export default function ProfilePage() {
           <Button
             variant="outline"
             className="justify-between w-full"
-            onPress={() => {}}
+            onPress={() => navigation.navigate("Favourites")}
           >
             <Text>Favourites</Text>
             <ChevronRight

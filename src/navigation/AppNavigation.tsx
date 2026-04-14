@@ -1,9 +1,11 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "../screens/HomeScreen";
+import FavouritesPage from "@/screens/pages/FavouritesPage";
 
 export type AppStackParamList = {
   Home: undefined;
   Account: undefined;
+  Favourites: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -12,6 +14,14 @@ export default function AppNavigation() {
   return (
     <Stack.Navigator id="app-stack" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen
+        name="Favourites"
+        component={FavouritesPage}
+        options={{
+          headerShown: true,
+          title: "Favourites",
+        }}
+      />
     </Stack.Navigator>
   );
 }
