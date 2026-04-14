@@ -7,10 +7,10 @@ import {
   CardTitle,
 } from "./ui/card";
 import Carousel, { ICarouselInstance } from "react-native-reanimated-carousel";
-import { Dimensions, Image, View } from "react-native";
+import { Dimensions, Image, Pressable, View } from "react-native";
 import { Text } from "./ui/text";
 import { Icon } from "./ui/icon";
-import { Store } from "lucide-react-native";
+import { Heart, Store } from "lucide-react-native";
 
 export const NO_IMAGE_SENTINEL = "__NO_IMAGE__";
 
@@ -19,7 +19,9 @@ interface ProductCardProps {
   price: number;
   images: string[];
   favourite: boolean;
+  isFavouriteLoading?: boolean;
   uid: string;
+  onToggleFavourite?: (id: string, currentValue: boolean) => void;
   onCarouselTouchStart?: () => void;
   onCarouselTouchEnd?: () => void;
   className?: string;
@@ -30,7 +32,9 @@ function ProductCard({
   price,
   images,
   favourite,
+  isFavouriteLoading = false,
   uid,
+  onToggleFavourite,
   onCarouselTouchStart,
   onCarouselTouchEnd,
   className,
@@ -101,6 +105,20 @@ function ProductCard({
           }}
         />
 
+        <Pressable
+          className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-black/40"
+          onPress={() => onToggleFavourite?.(uid, favourite)}
+          disabled={isFavouriteLoading}
+          hitSlop={8}
+        >
+          <Icon
+            as={Heart}
+            className={favourite ? "text-red-500" : "text-white"}
+            size={18}
+            fill={favourite ? "currentColor" : "none"}
+          />
+        </Pressable>
+
         {images.length > 1 && (
           <View className="absolute bottom-3 w-full items-center">
             <View style={{ flexDirection: "row", gap: 6 }}>
@@ -136,4 +154,6 @@ function ProductCard({
   );
 }
 
-export { ProductCard };
+const MemoizedProductCard = React.memo(ProductCard);
+
+export { MemoizedProductCard as ProductCard };
