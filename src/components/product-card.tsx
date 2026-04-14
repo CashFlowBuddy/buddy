@@ -9,6 +9,10 @@ import {
 import Carousel, { ICarouselInstance } from "react-native-reanimated-carousel";
 import { Dimensions, Image, View } from "react-native";
 import { Text } from "./ui/text";
+import { Icon } from "./ui/icon";
+import { Store } from "lucide-react-native";
+
+export const NO_IMAGE_SENTINEL = "__NO_IMAGE__";
 
 interface ProductCardProps {
   title: string;
@@ -62,16 +66,39 @@ function ProductCard({
           }}
           onScrollStart={onCarouselTouchStart}
           onScrollEnd={() => onCarouselTouchEnd?.()}
-          renderItem={({ item }) => (
-            <Image
-              source={{ uri: item }}
-              style={{
-                width: cardWidth,
-                height: cardWidth,
-              }}
-              resizeMode="cover"
-            />
-          )}
+          renderItem={({ item }) => {
+            if (item === NO_IMAGE_SENTINEL) {
+              return (
+                <View className="h-full w-full rounded-xl border bg-muted p-2">
+                  <View className="flex h-full flex-col items-center justify-center text-muted-foreground">
+                    <View className="flex flex-row items-center justify-center gap-1 text-primary">
+                      <Icon as={Store} className="size-5 text-primary" />
+                      <Text
+                        numberOfLines={1}
+                        className="text-sm font-semibold text-primary"
+                      >
+                        CashFlowBuddy
+                      </Text>
+                    </View>
+                    <Text className="mt-1 text-sm text-muted-foreground">
+                      No image
+                    </Text>
+                  </View>
+                </View>
+              );
+            }
+
+            return (
+              <Image
+                source={{ uri: item }}
+                style={{
+                  width: cardWidth,
+                  height: cardWidth,
+                }}
+                resizeMode="contain"
+              />
+            );
+          }}
         />
 
         {images.length > 1 && (

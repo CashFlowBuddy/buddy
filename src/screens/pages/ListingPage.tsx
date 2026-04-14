@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { SearchBar } from "@/components/ui/search-bar";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProductCard } from "@/components/product-card";
+import { NO_IMAGE_SENTINEL, ProductCard } from "@/components/product-card";
 import type { Listing } from "@/lib/interfaces";
 
 type HomePageProps = {
@@ -66,8 +66,8 @@ export default function HomePage({ setPagerScrollEnabled }: HomePageProps) {
       price={item.price ?? 0}
       images={
         item.pictures && item.pictures.length > 0
-          ? item.pictures.map((p) => p.url)
-          : ["https://placehold.co/200x300/png?text=No+Image"]
+          ? item.pictures.map((p) => "https://cash.saserver.hu" + p.url)
+          : [NO_IMAGE_SENTINEL]
       }
       favourite={false}
       uid={item.id}
