@@ -2,11 +2,26 @@ import React, { memo, useCallback, useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SearchBar } from "@/components/ui/search-bar";
+import { AppSelect } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NO_IMAGE_SENTINEL, ProductCard } from "@/components/product-card";
 import { getAuthCookieHeader } from "@/lib/auth-client";
 import type { Listing } from "@/lib/interfaces";
+
+const categoryOptions = [
+  { value: "ALL", label: "All categories" },
+  { value: "ELECTRONIC", label: "Electronics" },
+  { value: "FASHION", label: "Fashion" },
+  { value: "HOME", label: "Home" },
+  { value: "BOOKS", label: "Books" },
+  { value: "TOYS", label: "Toys" },
+  { value: "SPORTS", label: "Sports" },
+  { value: "BEAUTY", label: "Beauty" },
+  { value: "AUTOMOTIVE", label: "Automotive" },
+  { value: "GARDEN", label: "Garden" },
+  { value: "OTHER", label: "Other" },
+];
 
 type HomePageProps = {
   setPagerScrollEnabled?: (enabled: boolean) => void;
@@ -30,9 +45,10 @@ const ListingItem = memo(function ListingItem({
 }: ListingItemProps) {
   return (
     <ProductCard
-      className="flex-1"
+      className="w-full"
       title={item.title}
       price={item.price ?? 0}
+      discountedPrice={item.discountedPrice}
       images={
         item.pictures && item.pictures.length > 0
           ? item.pictures.map((p) => "https://cash.saserver.hu" + p.url)
@@ -54,6 +70,7 @@ export default function HomePage({
 }: HomePageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchValue] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [error, setError] = useState<string | null>(null);
   const [allDATA, setAllData] = useState<Listing[]>([]);
   const [savedListingIds, setSavedListingIds] = useState<Set<string>>(new Set());
@@ -215,9 +232,16 @@ export default function HomePage({
     setSearchValue(query);
   };
 
-  const filteredDATA = allDATA.filter((item) =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredDATA = allDATA.filter((item) => {
+    const matchesSearch = item.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === "ALL" || item.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
 
   const renderItem = useCallback(
     ({ item }: { item: Listing }) => (
@@ -235,6 +259,12 @@ export default function HomePage({
   return (
     <SafeAreaView className="flex-1">
       <View className="px-6 pb-4">
+        <AppSelect
+          value={selectedCategory}
+          onValueChange={setSelectedCategory}
+          options={categoryOptions}
+          placeholder="Filter by category"
+        />
         <SearchBar
           value={searchQuery}
           onChangeText={handleSearch}
@@ -259,12 +289,10 @@ export default function HomePage({
       ) : (
         <FlatList
           data={filteredDATA}
-          numColumns={2}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          columnWrapperStyle={{ gap: 8 }}
           className="px-6"
-          contentContainerStyle={{ gap: 8 }}
+          contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
           ListEmptyComponent={() => (
             <View className="p-4">
               <Text className="text-center text-gray-500">

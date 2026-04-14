@@ -24,6 +24,7 @@ export interface Listing {
   title: string;
   description?: string;
   price?: number;
+  discountedPrice?: number;
   category?: string;
   status?: string;
   url?: string;

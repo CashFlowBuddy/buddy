@@ -1,13 +1,11 @@
 import React from "react";
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "./ui/card";
 import Carousel, { ICarouselInstance } from "react-native-reanimated-carousel";
-import { Dimensions, Image, Pressable, View } from "react-native";
+import { Image, Pressable, View, useWindowDimensions } from "react-native";
 import { Text } from "./ui/text";
 import { Icon } from "./ui/icon";
 import { Heart, Store } from "lucide-react-native";
@@ -17,6 +15,7 @@ export const NO_IMAGE_SENTINEL = "__NO_IMAGE__";
 interface ProductCardProps {
   title: string;
   price: number;
+  discountedPrice?: number;
   images: string[];
   favourite: boolean;
   isFavouriteLoading?: boolean;
@@ -30,6 +29,7 @@ interface ProductCardProps {
 function ProductCard({
   title,
   price,
+  discountedPrice,
   images,
   favourite,
   isFavouriteLoading = false,
@@ -42,25 +42,37 @@ function ProductCard({
 }: ProductCardProps) {
   const ref = React.useRef<ICarouselInstance>(null);
   const [activeIndex, setActiveIndex] = React.useState(0);
+  const { width } = useWindowDimensions();
 
-  const onPressPagination = (index: number) => {
-    ref.current?.scrollTo({ index, animated: true });
-  };
+  const formatHuf = React.useCallback((value: number) => {
+    return new Intl.NumberFormat("hu-HU", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  }, []);
 
-  const width = Dimensions.get("window").width;
-  const cardWidth = (width - 48) / 2 - 4;
+  const hasDiscount =
+    typeof discountedPrice === "number" &&
+    Number.isFinite(discountedPrice) &&
+    discountedPrice >= 0 &&
+    discountedPrice < price;
+
+  const displayPrice = hasDiscount ? discountedPrice : price;
+  const discountPercent =
+    hasDiscount && price > 0
+      ? Math.round(((price - discountedPrice) / price) * 100)
+      : 0;
+
+  const imageSize = Math.min(132, Math.max(100, width * 0.28));
 
   return (
-    <Card
-      className={"items-center py-0 overflow-hidden " + className}
-      {...CardProps}
-    >
-      <CardHeader className="w-full p-0 relative overflow-hidden rounded-t-xl">
+    <Card className={"flex-row overflow-hidden py-0 " + className} {...CardProps}>
+      <View className="relative">
         <Carousel
           ref={ref}
           loop
-          width={cardWidth}
-          height={cardWidth}
+          width={imageSize}
+          height={imageSize}
           autoPlay={false}
           data={images}
           scrollAnimationDuration={300}
@@ -96,10 +108,10 @@ function ProductCard({
               <Image
                 source={{ uri: item }}
                 style={{
-                  width: cardWidth,
-                  height: cardWidth,
+                  width: imageSize,
+                  height: imageSize,
                 }}
-                resizeMode="contain"
+                resizeMode="cover"
               />
             );
           }}
@@ -139,17 +151,54 @@ function ProductCard({
             </View>
           </View>
         )}
-      </CardHeader>
-      <CardTitle className="w-full px-4">
-        <Text numberOfLines={2} className="text-base font-medium mb-1">
-          {title}
-        </Text>
-      </CardTitle>
-      <CardDescription className="w-full px-4 pb-4">
-        <Text className="text-sm font-semibold text-primary">
-          ${price.toFixed(2)}
-        </Text>
-      </CardDescription>
+      </View>
+
+      <View className="flex-1 px-4 py-3 justify-center">
+        <CardTitle className="w-full p-0">
+          <Text numberOfLines={2} className="mb-1 text-base font-medium">
+            {title}
+          </Text>
+        </CardTitle>
+        <CardDescription className="w-full p-0">
+          {hasDiscount ? (
+            <View>
+              <Text numberOfLines={1} className="text-xs text-muted-foreground line-through">
+                {formatHuf(price)}{"\u00A0"}Ft
+              </Text>
+              <View className="mt-0.5 flex-row items-end gap-2">
+                <View className="flex-row items-end gap-1">
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.92}
+                    className="text-lg font-bold text-primary"
+                  >
+                    {formatHuf(displayPrice)}
+                  </Text>
+                  <Text className="pb-0.5 text-xs font-semibold text-primary">Ft</Text>
+                </View>
+                <View className="rounded-full bg-red-500/10 px-2 py-0.5">
+                  <Text className="text-xs font-semibold text-red-500">
+                    -{discountPercent}%
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ) : (
+            <View className="flex-row items-end gap-1">
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.92}
+                className="text-lg font-bold text-primary"
+              >
+                {formatHuf(displayPrice)}
+              </Text>
+              <Text className="pb-0.5 text-xs font-semibold text-primary">Ft</Text>
+            </View>
+          )}
+        </CardDescription>
+      </View>
     </Card>
   );
 }
