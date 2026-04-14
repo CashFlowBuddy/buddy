@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import MessagePage from "@/screens/pages/MessagePage";
-import ChatScreen from "@/screens/pages/ChatScreen";
+import ChatScreen from "@/screens/ChatScreen";
 
 import type { User } from "@/lib/interfaces";
 

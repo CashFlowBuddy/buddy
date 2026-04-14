@@ -2,95 +2,87 @@ import React from "react";
 import { ScrollView } from "react-native";
 import { authClient } from "../../lib/auth-client";
 import { useColorScheme, View } from "react-native";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react-native";
+import AccSetDial from "../dialogs/AccSetDial";
+import SellsDial from "../dialogs/SellsDial";
+import NotificationDial from "../dialogs/NotificationDial";
+import PrivacyDial from "../dialogs/PrivacyDial";
 
 export default function ProfilePage() {
   const { data: session } = authClient.useSession();
+  const colorScheme = useColorScheme();
 
   function handleSignOut() {
     authClient.signOut();
   }
   return (
-    <View className="flex-1 bg-background py-6">
-
-      <ScrollView>
-        <Card className="mb-4 p-4 w-fit">
-          <CardHeader className="text-lg font-semibold mb-4">
-            <Text variant="h2">Profile</Text>
-          </CardHeader>
-          <View className="items-center flex-row">
+    <View className="flex-1 bg-background">
+      <ScrollView className="px-4 py-6">
+        <View className="mb-8">
+          <View className="flex-row items-center gap-4">
             <Avatar alt={session?.user?.name || "User"}>
-              <AvatarImage source={{ uri: session?.user?.image }} className="" />
+              <AvatarImage
+                source={{ uri: session?.user?.image }}
+              />
               <AvatarFallback>
                 <Text>{session?.user?.name ? session.user.name[0] : "U"}</Text>
               </AvatarFallback>
             </Avatar>
-            <Text className="text-lg font-semibold ml-4">
-              {session?.user?.name || "User"}
-            </Text>
-          </View>
-        </Card>
-        <Separator orientation="horizontal" className="mb-4" />
-        <Card className="mb-4 p-4 w-fit">
-          <CardHeader className="text-lg font-semibold mb-4">
-            <Text variant="h2"> Account Details</Text>
-          </CardHeader>
-          <View className="items-baseline">
-            <Text className="text-base">
-              Email: {session?.user?.email || "Not provided"}
-            </Text>
-            <Badge variant={session?.user?.emailVerified ? "default" : "destructive"} className="ml-2">
-              <Text>
-                {session?.user?.emailVerified ? "Verified" : "Unverified"}
+            <View className="flex-1">
+              <Text className="text-2xl font-bold text-foreground">
+                {session?.user?.name || "User"}
               </Text>
-            </Badge>
+              <Text className="text-muted-foreground text-sm mt-1">
+                {session?.user?.email || "Not provided"}
+              </Text>
+            </View>
           </View>
-        </Card>
-        <Separator orientation="horizontal" className="mb-4" />
-        <Card className="mb-4 p-4 w-fit">
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
+          {session?.user?.emailVerified && (
+            <Badge variant="default" className="mt-3 w-40">
+              <Text className="text-xs">Verified</Text>
+            </Badge>
+          )}
+        </View>
+
+        <View className="gap-3 mb-8">
+          <Button
+            variant="outline"
+            className="justify-between w-full"
+            onPress={() => {}}
+          >
             <Text>Favourites</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
+            <ChevronRight
+              size={20}
+              color={colorScheme === "dark" ? "#fafafa" : "#0a0a0a"}
+            />
           </Button>
-          <Separator orientation="horizontal"/>
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
-            <Text>Sells</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
-          </Button>
-            <Separator orientation="horizontal"/>
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
-            <Text>Account Settings</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
-          </Button>
-            <Separator orientation="horizontal"/>
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
-            <Text>Notifications</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
-          </Button>
-            <Separator orientation="horizontal"/>
-          <Button variant="ghost" className="justify-between" onPress={() => {}}>
-            <Text>Privacy</Text>
-            <ChevronRight color={useColorScheme() === "dark" ? "white" : "black"} />
-          </Button>
-        </Card>
-        <Separator orientation="horizontal" className="mb-4" />
-        <View className="px-4">
+        </View>
+
+        <View className="gap-2 mb-8">
+          <Text className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-2">
+            Settings
+          </Text>
+          <SellsDial />
+          <AccSetDial />
+          <NotificationDial />
+          <PrivacyDial />
+        </View>
+
+        <View className="mb-4">
           <Button
             variant="destructive"
-            className="w-full mb-2"
+            className="w-full"
             onPress={handleSignOut}
           >
             <Text>Sign Out</Text>
           </Button>
         </View>
       </ScrollView>
-
     </View>
   );
-} // TODO: favourites (button), sells(button), profile details, account settings, notifications
+}
+

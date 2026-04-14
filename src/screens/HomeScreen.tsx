@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 import HomePage from "./pages/ListingPage";

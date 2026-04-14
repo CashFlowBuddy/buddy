@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "setup-react-native-storybook": {
+      "source": "storybookjs/react-native",
+      "sourceType": "github",
+      "computedHash": "cc044cd2b4d265dfb3ae926c78c415feaf90ea389b209b310c4c24b53e8e10b7"
+    }
+  }
+}
