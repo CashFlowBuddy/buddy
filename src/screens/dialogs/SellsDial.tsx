@@ -6,8 +6,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useState } from "react";
+import { CircleAlert, CircleCheck } from "lucide-react-native";
 
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
@@ -16,9 +17,14 @@ import { Label } from "@/components/ui/label";
 import { AppSelect } from "@/components/ui/select";
 import { getAuthCookieHeader } from "@/lib/auth-client";
 import { ImgUpload } from "@/components/ui/img-upload";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 
 const categories = [
-  { value: "ELECTRONIC", label: "Electronics" },
+  { value: "ELECTRONICS", label: "Electronics" },
   { value: "FASHION", label: "Fashion" },
   { value: "HOME", label: "Home" },
   { value: "BOOKS", label: "Books" },
@@ -31,16 +37,50 @@ const categories = [
 ];
 
 export default function SellsDial() {
+  const [feedback, setFeedback] = useState<{
+    variant: "default" | "destructive";
+    title: string;
+    message: string;
+  } | null>(null);
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [discount, setDiscount] = useState("");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+
+  const getMimeTypeFromImage = (imageUri: string) => {
+    if (imageUri.startsWith("data:")) {
+      const match = imageUri.match(/^data:(.*?);/);
+      return match?.[1] ?? "image/jpeg";
+    }
+
+    const extension = imageUri.split(".").pop()?.toLowerCase();
+
+    switch (extension) {
+      case "png":
+        return "image/png";
+      case "webp":
+        return "image/webp";
+      case "jpg":
+      case "jpeg":
+      default:
+        return "image/jpeg";
+    }
+  };
+
+  const getFileNameFromImage = (imageUri: string) => {
+    const pathFileName = imageUri.split("/").pop();
+    if (pathFileName && !pathFileName.startsWith("data:")) {
+      return pathFileName;
+    }
+
+    const mimeType = getMimeTypeFromImage(imageUri);
+    const extension = mimeType.split("/")[1] || "jpg";
+    return `listing-image.${extension}`;
+  };
 
   const resetForm = () => {
     setCategory("");
@@ -48,38 +88,128 @@ export default function SellsDial() {
     setDescription("");
     setPrice("");
     setDiscount("");
-    setSelectedImage(null);
+    setSelectedImages([]);
+  };
+
+  const createListing = async (cookieHeader: string | null, parsedPrice: number, parsedDiscount?: number) => {
+    const response = await fetch("https://api.saserver.hu/api/listings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      },
+      body: JSON.stringify({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        price: parsedPrice,
+        ...(parsedDiscount !== undefined ? { discountedPrice: parsedDiscount } : {}),
+      }),
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Listing creation failed with status ${response.status}`);
+    }
+
+    const createdListing = await response.json();
+    const listingId = createdListing?.id as string | undefined;
+
+    if (!listingId) {
+      throw new Error("Listing created but no listing id was returned.");
+    }
+
+    return listingId;
+  };
+
+  const uploadListingPicture = async (cookieHeader: string | null, listingId: string, imageUri: string) => {
+    const mimeType = getMimeTypeFromImage(imageUri);
+    const fileName = getFileNameFromImage(imageUri);
+
+    const formData = new FormData();
+    formData.append("listingId", listingId);
+
+    if (imageUri.startsWith("data:")) {
+      const imageBlob = await fetch(imageUri).then((res) => res.blob());
+      formData.append("file", imageBlob, fileName);
+    } else {
+      formData.append("file", {
+        uri: imageUri,
+        name: fileName,
+        type: mimeType,
+      } as unknown as Blob);
+    }
+
+    const response = await fetch("https://api.saserver.hu/api/pictures", {
+      method: "POST",
+      headers: {
+        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Image upload failed with status ${response.status}`);
+    }
   };
 
   const handleSubmit = async () => {
-    setSubmitError(null);
-    setSubmitSuccess(null);
-
+    setFeedback(null);
     const parsedPrice = Number(price);
     const parsedDiscount = discount.trim() ? Number(discount) : undefined;
 
     if (!title.trim()) {
-      setSubmitError("Title is required.");
+      setFeedback({
+        variant: "destructive",
+        title: "Missing field",
+        message: "Title is required.",
+      });
       return;
     }
 
     if (!description.trim()) {
-      setSubmitError("Description is required.");
+      setFeedback({
+        variant: "destructive",
+        title: "Missing field",
+        message: "Description is required.",
+      });
       return;
     }
 
     if (!category) {
-      setSubmitError("Category is required.");
+      setFeedback({
+        variant: "destructive",
+        title: "Missing field",
+        message: "Category is required.",
+      });
+      return;
+    }
+
+    if (!selectedImages.length) {
+      setFeedback({
+        variant: "destructive",
+        title: "Missing image",
+        message: "Please upload at least one image before submitting.",
+      });
       return;
     }
 
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-      setSubmitError("Price must be a valid number greater than 0.");
+      setFeedback({
+        variant: "destructive",
+        title: "Invalid price",
+        message: "Price must be a valid number greater than 0.",
+      });
       return;
     }
 
     if (parsedDiscount !== undefined && (!Number.isFinite(parsedDiscount) || parsedDiscount < 0)) {
-      setSubmitError("Discounted price must be a valid number.");
+      setFeedback({
+        variant: "destructive",
+        title: "Invalid discounted price",
+        message: "Discounted price must be a valid number.",
+      });
       return;
     }
 
@@ -88,32 +218,25 @@ export default function SellsDial() {
     try {
       const cookieHeader = await getAuthCookieHeader();
 
-      const response = await fetch("https://api.saserver.hu/api/listing", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          category,
-          price: parsedPrice,
-          ...(parsedDiscount !== undefined ? { discountedPrice: parsedDiscount } : {}),
-        }),
-      });
+      const listingId = await createListing(cookieHeader, parsedPrice, parsedDiscount);
 
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || `Request failed with status ${response.status}`);
+      for (const imageUri of selectedImages.slice(0, 6)) {
+        await uploadListingPicture(cookieHeader, listingId, imageUri);
       }
 
-      setSubmitSuccess("Listing created successfully.");
+      setFeedback({
+        variant: "default",
+        title: "Upload successful",
+        message: "Listing and pictures uploaded successfully.",
+      });
       resetForm();
-      setOpen(false);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to create listing.";
-      setSubmitError(errorMessage);
+      setFeedback({
+        variant: "destructive",
+        title: "Upload failed",
+        message: errorMessage,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -132,7 +255,12 @@ export default function SellsDial() {
           <DialogTitle>Sell product</DialogTitle>
         </DialogHeader>
 
-        <View className="py-4">
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="py-4 pb-8"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Label>Title</Label>
           <Input
             placeholder="Enter title"
@@ -160,16 +288,24 @@ export default function SellsDial() {
           <Label>Price</Label>
           <Input placeholder="Enter price" className="mb-4" keyboardType="numeric" value={price} onChangeText={setPrice} />
 
-          <Label>Upload Image</Label>
-          <ImgUpload onImageSelect={setSelectedImage} />
+          <Label>Upload Images</Label>
+          <ImgUpload onImagesSelect={setSelectedImages} disabled={isSubmitting} />
 
-          {submitError ? <Text className="mb-3 text-destructive">{submitError}</Text> : null}
-          {submitSuccess ? <Text className="mb-3 text-green-600">{submitSuccess}</Text> : null}
+          {feedback ? (
+            <Alert
+              className="mt-4"
+              variant={feedback.variant}
+              icon={feedback.variant === "destructive" ? CircleAlert : CircleCheck}
+            >
+              <AlertTitle>{feedback.title}</AlertTitle>
+              <AlertDescription>{feedback.message}</AlertDescription>
+            </Alert>
+          ) : null}
 
           <Button className="mt-4 w-full" onPress={handleSubmit} disabled={isSubmitting}>
             <Text>{isSubmitting ? "Submitting..." : "Submit"}</Text>
           </Button>
-        </View>
+        </ScrollView>
       </DialogContent>
     </Dialog>
   );

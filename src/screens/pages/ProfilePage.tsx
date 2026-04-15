@@ -66,6 +66,17 @@ export default function ProfilePage() {
               color={colorScheme === "dark" ? "#fafafa" : "#0a0a0a"}
             />
           </Button>
+          <Button
+            variant="outline"
+            className="justify-between w-full"
+            onPress={() => navigation.navigate("Favourites")}
+          >
+            <Text>My listings</Text>
+            <ChevronRight
+              size={20}
+              color={colorScheme === "dark" ? "#fafafa" : "#0a0a0a"}
+            />
+          </Button>
         </View>
 
         <View className="gap-2 mb-8">
