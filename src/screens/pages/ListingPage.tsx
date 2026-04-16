@@ -5,6 +5,16 @@ import { SearchBar } from "@/components/ui/search-bar";
 import { AppSelect } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SquarePen } from "lucide-react-native";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { NO_IMAGE_SENTINEL, ProductCard } from "@/components/product-card";
 import { getAuthCookieHeader } from "@/lib/auth-client";
 import type { Listing } from "@/lib/interfaces";
@@ -25,42 +35,51 @@ const categoryOptions = [
 
 type HomePageProps = {
   setPagerScrollEnabled?: (enabled: boolean) => void;
-  mode?: "all" | "saved";
+  mode?: "all" | "saved" | "mine";
 };
 
 type ListingItemProps = {
   item: Listing;
+  mode: "all" | "saved" | "mine";
   isFavourite: boolean;
   isFavouriteLoading: boolean;
   setPagerScrollEnabled?: (enabled: boolean) => void;
   onToggleFavourite: (listingId: string, currentlySaved: boolean) => void;
+  onEditPress?: (listing: Listing) => void;
 };
 
 const ListingItem = memo(function ListingItem({
   item,
+  mode,
   isFavourite,
   isFavouriteLoading,
   setPagerScrollEnabled,
   onToggleFavourite,
+  onEditPress,
 }: ListingItemProps) {
   return (
-    <ProductCard
-      className="w-full"
-      title={item.title}
-      price={item.price ?? 0}
-      discountedPrice={item.discountedPrice}
-      images={
-        item.pictures && item.pictures.length > 0
-          ? item.pictures.map((p) => "https://cash.saserver.hu" + p.url)
-          : [NO_IMAGE_SENTINEL]
-      }
-      favourite={isFavourite}
-      isFavouriteLoading={isFavouriteLoading}
-      uid={item.id}
-      onToggleFavourite={onToggleFavourite}
-      onCarouselTouchStart={() => setPagerScrollEnabled?.(false)}
-      onCarouselTouchEnd={() => setPagerScrollEnabled?.(true)}
-    />
+    <View className="w-full">
+      <ProductCard
+        className="w-full"
+        title={item.title}
+        price={item.price ?? 0}
+        discountedPrice={item.discountedPrice}
+        images={
+          item.pictures && item.pictures.length > 0
+            ? item.pictures.map((p) => "https://cash.saserver.hu" + p.url)
+            : [NO_IMAGE_SENTINEL]
+        }
+        favourite={isFavourite}
+        showFavouriteAction={mode !== "mine"}
+        isFavouriteLoading={isFavouriteLoading}
+        cardActionIcon={mode === "mine" ? SquarePen : undefined}
+        onCardActionPress={mode === "mine" ? () => onEditPress?.(item) : undefined}
+        uid={item.id}
+        onToggleFavourite={onToggleFavourite}
+        onCarouselTouchStart={() => setPagerScrollEnabled?.(false)}
+        onCarouselTouchEnd={() => setPagerScrollEnabled?.(true)}
+      />
+    </View>
   );
 });
 
@@ -75,6 +94,14 @@ export default function HomePage({
   const [allDATA, setAllData] = useState<Listing[]>([]);
   const [savedListingIds, setSavedListingIds] = useState<Set<string>>(new Set());
   const [pendingSaveIds, setPendingSaveIds] = useState<Set<string>>(new Set());
+  const [editingListing, setEditingListing] = useState<Listing | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editCategory, setEditCategory] = useState("OTHER");
+  const [editPrice, setEditPrice] = useState("");
+  const [editDiscountPrice, setEditDiscountPrice] = useState("");
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -92,6 +119,27 @@ export default function HomePage({
       setError(null);
 
       const cookieHeader = await getAuthCookieHeader();
+
+      if (mode === "mine") {
+        const myResponse = await fetch("https://api.saserver.hu/api/listings/my", {
+          headers: {
+            "Content-Type": "application/json",
+            ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+          },
+          credentials: "include",
+        });
+
+        if (!myResponse.ok) {
+          throw new Error(`HTTP error! status: ${myResponse.status}`);
+        }
+
+        const myData = await myResponse.json();
+        const listings = Array.isArray(myData) ? myData : [];
+
+        setAllData(listings);
+        setSavedListingIds(new Set());
+        return;
+      }
 
       if (mode === "saved") {
         const savedResponse = await fetch(
@@ -228,6 +276,126 @@ export default function HomePage({
     [],
   );
 
+  const openEditDialog = useCallback((listing: Listing) => {
+    setEditingListing(listing);
+    setEditTitle(listing.title ?? "");
+    setEditDescription(listing.description ?? "");
+    setEditCategory(listing.category ?? "OTHER");
+    setEditPrice(typeof listing.price === "number" ? String(listing.price) : "");
+    setEditDiscountPrice(
+      typeof listing.discountedPrice === "number"
+        ? String(listing.discountedPrice)
+        : "",
+    );
+    setEditError(null);
+  }, []);
+
+  const closeEditDialog = useCallback(() => {
+    if (isSubmittingEdit) return;
+    setEditingListing(null);
+    setEditError(null);
+  }, [isSubmittingEdit]);
+
+  const submitListingUpdate = useCallback(async () => {
+    if (!editingListing) return;
+
+    if (!editTitle.trim()) {
+      setEditError("Title is required.");
+      return;
+    }
+
+    if (!editDescription.trim()) {
+      setEditError("Description is required.");
+      return;
+    }
+
+    const parsedPrice = Number(editPrice);
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      setEditError("Price must be a valid number greater than 0.");
+      return;
+    }
+
+    const parsedDiscount = editDiscountPrice.trim()
+      ? Number(editDiscountPrice)
+      : undefined;
+
+    if (
+      parsedDiscount !== undefined &&
+      (!Number.isFinite(parsedDiscount) || parsedDiscount < 0)
+    ) {
+      setEditError("Discounted price must be a valid number.");
+      return;
+    }
+
+    setIsSubmittingEdit(true);
+    setEditError(null);
+
+    const payload = {
+      title: editTitle.trim(),
+      description: editDescription.trim(),
+      category: editCategory,
+      price: parsedPrice,
+      ...(parsedDiscount !== undefined ? { discountedPrice: parsedDiscount } : {}),
+    };
+
+    try {
+      const cookieHeader = await getAuthCookieHeader();
+      const endpoint = `https://api.saserver.hu/api/listings/${editingListing.id}`;
+
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(
+          message || `Failed to update listing. Status: ${response.status}`,
+        );
+      }
+
+      const updated = (await response.json()) as Listing;
+
+      setAllData((prev) =>
+        prev.map((item) =>
+          item.id === editingListing.id
+            ? {
+                ...item,
+                ...updated,
+                title: updated.title ?? payload.title,
+                description: updated.description ?? payload.description,
+                category: updated.category ?? payload.category,
+                price: updated.price ?? payload.price,
+                discountedPrice:
+                  updated.discountedPrice ?? payload.discountedPrice,
+              }
+            : item,
+        ),
+      );
+
+      setEditingListing(null);
+    } catch (err) {
+      console.error("Error updating listing:", err);
+      setEditError(
+        err instanceof Error ? err.message : "Failed to update listing.",
+      );
+    } finally {
+      setIsSubmittingEdit(false);
+    }
+  }, [
+    editCategory,
+    editDescription,
+    editDiscountPrice,
+    editingListing,
+    editPrice,
+    editTitle,
+  ]);
+
   const handleSearch = (query: string) => {
     setSearchValue(query);
   };
@@ -247,13 +415,22 @@ export default function HomePage({
     ({ item }: { item: Listing }) => (
       <ListingItem
         item={item}
+        mode={mode}
         isFavourite={savedListingIds.has(item.id)}
         isFavouriteLoading={pendingSaveIds.has(item.id)}
         setPagerScrollEnabled={setPagerScrollEnabled}
         onToggleFavourite={toggleSaveListing}
+        onEditPress={openEditDialog}
       />
     ),
-    [pendingSaveIds, savedListingIds, setPagerScrollEnabled, toggleSaveListing],
+    [
+      mode,
+      openEditDialog,
+      pendingSaveIds,
+      savedListingIds,
+      setPagerScrollEnabled,
+      toggleSaveListing,
+    ],
   );
 
   return (
@@ -296,12 +473,91 @@ export default function HomePage({
           ListEmptyComponent={() => (
             <View className="p-4">
               <Text className="text-center text-gray-500">
-                {mode === "saved" ? "No saved items found" : "No items found"}
+                {mode === "saved"
+                  ? "No saved items found"
+                  : mode === "mine"
+                    ? "No listings found"
+                    : "No items found"}
               </Text>
             </View>
           )}
         />
       )}
+
+      <Dialog open={Boolean(editingListing)} onOpenChange={closeEditDialog}>
+        <DialogContent className="max-w-[95%]">
+          <DialogHeader>
+            <DialogTitle>Edit listing</DialogTitle>
+          </DialogHeader>
+
+          <View className="gap-3">
+            <View className="gap-1">
+              <Label>Title</Label>
+              <Input
+                value={editTitle}
+                onChangeText={setEditTitle}
+                placeholder="Enter title"
+              />
+            </View>
+
+            <View className="gap-1">
+              <Label>Description</Label>
+              <Input
+                value={editDescription}
+                onChangeText={setEditDescription}
+                placeholder="Enter description"
+              />
+            </View>
+
+            <View className="gap-1">
+              <Label>Category</Label>
+              <AppSelect
+                value={editCategory}
+                onValueChange={setEditCategory}
+                options={categoryOptions}
+                placeholder="Select category"
+              />
+            </View>
+
+            <View className="gap-1">
+              <Label>Price</Label>
+              <Input
+                value={editPrice}
+                onChangeText={setEditPrice}
+                placeholder="Enter price"
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View className="gap-1">
+              <Label>Discounted price</Label>
+              <Input
+                value={editDiscountPrice}
+                onChangeText={setEditDiscountPrice}
+                placeholder="Optional discounted price"
+                keyboardType="numeric"
+              />
+            </View>
+
+            {editError ? (
+              <Text className="text-sm text-red-500">{editError}</Text>
+            ) : null}
+
+            <View className="flex-row justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                onPress={closeEditDialog}
+                disabled={isSubmittingEdit}
+              >
+                <Text>Cancel</Text>
+              </Button>
+              <Button onPress={submitListingUpdate} disabled={isSubmittingEdit}>
+                <Text>{isSubmittingEdit ? "Saving..." : "Save changes"}</Text>
+              </Button>
+            </View>
+          </View>
+        </DialogContent>
+      </Dialog>
     </SafeAreaView>
   );
 }

@@ -30,9 +30,6 @@ const categories = [
   { value: "BOOKS", label: "Books" },
   { value: "TOYS", label: "Toys" },
   { value: "SPORTS", label: "Sports" },
-  { value: "BEAUTY", label: "Beauty" },
-  { value: "AUTOMOTIVE", label: "Automotive" },
-  { value: "GARDEN", label: "Garden" },
   { value: "OTHER", label: "Other" },
 ];
 
@@ -47,7 +44,6 @@ export default function SellsDial() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [discount, setDiscount] = useState("");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -87,11 +83,10 @@ export default function SellsDial() {
     setTitle("");
     setDescription("");
     setPrice("");
-    setDiscount("");
     setSelectedImages([]);
   };
 
-  const createListing = async (cookieHeader: string | null, parsedPrice: number, parsedDiscount?: number) => {
+  const createListing = async (cookieHeader: string | null, parsedPrice: number) => {
     const response = await fetch("https://api.saserver.hu/api/listings", {
       method: "POST",
       headers: {
@@ -103,7 +98,6 @@ export default function SellsDial() {
         description: description.trim(),
         category,
         price: parsedPrice,
-        ...(parsedDiscount !== undefined ? { discountedPrice: parsedDiscount } : {}),
       }),
     });
 
@@ -157,7 +151,6 @@ export default function SellsDial() {
   const handleSubmit = async () => {
     setFeedback(null);
     const parsedPrice = Number(price);
-    const parsedDiscount = discount.trim() ? Number(discount) : undefined;
 
     if (!title.trim()) {
       setFeedback({
@@ -204,21 +197,13 @@ export default function SellsDial() {
       return;
     }
 
-    if (parsedDiscount !== undefined && (!Number.isFinite(parsedDiscount) || parsedDiscount < 0)) {
-      setFeedback({
-        variant: "destructive",
-        title: "Invalid discounted price",
-        message: "Discounted price must be a valid number.",
-      });
-      return;
-    }
 
     setIsSubmitting(true);
 
     try {
       const cookieHeader = await getAuthCookieHeader();
 
-      const listingId = await createListing(cookieHeader, parsedPrice, parsedDiscount);
+      const listingId = await createListing(cookieHeader, parsedPrice);
 
       for (const imageUri of selectedImages.slice(0, 6)) {
         await uploadListingPicture(cookieHeader, listingId, imageUri);
