@@ -32,7 +32,7 @@ export default function ProfilePage() {
           <View className="flex-row items-center gap-4">
             <Avatar alt={session?.user?.name || "User"}>
               <AvatarImage
-                source={{ uri: session?.user?.image ?? undefined }}
+                source={{ uri: (session?.user?.image ? "https://cash.saserver.hu" + session.user.image : undefined) }}
               />
               <AvatarFallback>
                 <Text>{session?.user?.name ? session.user.name[0] : "U"}</Text>
