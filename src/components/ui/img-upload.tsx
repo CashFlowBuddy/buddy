@@ -8,18 +8,26 @@ import { useState, useRef } from 'react';
 export type ImgUploadProps = {
   onImageSelect?: (uri: string) => void;
   onImagesSelect?: (uris: string[]) => void;
+  maxImages?: number;
   disabled?: boolean;
   className?: string;
 };
 
-const MAX_IMAGES = 6;
+const DEFAULT_MAX_IMAGES = 6;
 
-function ImgUpload({ onImageSelect, onImagesSelect, disabled = false, className }: ImgUploadProps) {
+function ImgUpload({
+  onImageSelect,
+  onImagesSelect,
+  maxImages = DEFAULT_MAX_IMAGES,
+  disabled = false,
+  className,
+}: ImgUploadProps) {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const safeMaxImages = Math.max(0, maxImages);
 
   const updateSelectedImages = (uris: string[]) => {
-    const nextUris = uris.slice(0, MAX_IMAGES);
+    const nextUris = uris.slice(0, safeMaxImages);
     setSelectedImages(nextUris);
     onImagesSelect?.(nextUris);
     onImageSelect?.(nextUris[0]);
@@ -33,6 +41,10 @@ function ImgUpload({ onImageSelect, onImagesSelect, disabled = false, className 
 
   const handleNative = async () => {
     if (Platform.OS === 'web') return;
+    if (safeMaxImages === 0) {
+      Alert.alert('Image limit reached', 'You already have the maximum number of images.');
+      return;
+    }
 
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -43,7 +55,7 @@ function ImgUpload({ onImageSelect, onImagesSelect, disabled = false, className 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
-      selectionLimit: MAX_IMAGES,
+      selectionLimit: safeMaxImages,
       quality: 0.9,
       allowsEditing: false,
     });
@@ -58,6 +70,10 @@ function ImgUpload({ onImageSelect, onImagesSelect, disabled = false, className 
 
   const handlePress = () => {
     if (disabled) return;
+    if (safeMaxImages === 0) {
+      Alert.alert('Image limit reached', 'You already have the maximum number of images.');
+      return;
+    }
     if (Platform.OS === 'web') {
       handleWeb();
       return;
@@ -66,7 +82,7 @@ function ImgUpload({ onImageSelect, onImagesSelect, disabled = false, className 
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []).slice(0, MAX_IMAGES);
+    const files = Array.from(event.target.files ?? []).slice(0, safeMaxImages);
     if (!files.length) return;
 
     void Promise.all(
@@ -109,7 +125,7 @@ function ImgUpload({ onImageSelect, onImagesSelect, disabled = false, className 
             </View>
             <View className="bg-black/55 rounded-md px-3 py-2 absolute bottom-3 left-3 right-3">
               <Text className="text-white font-semibold text-center text-sm">
-                {selectedImages.length} / {MAX_IMAGES} selected
+                {selectedImages.length} / {safeMaxImages} selected
               </Text>
               <Text className="text-white/90 text-xs text-center">Tap to change selection</Text>
             </View>
@@ -125,7 +141,7 @@ function ImgUpload({ onImageSelect, onImagesSelect, disabled = false, className 
               <Text className="text-foreground font-semibold text-center text-sm">
                 {Platform.OS === 'web' ? 'Click to upload photos' : 'Tap to upload photos'}
               </Text>
-              <Text className="text-muted-foreground text-xs">Up to 6 images</Text>
+              <Text className="text-muted-foreground text-xs">Up to {safeMaxImages} images</Text>
             </View>
           </View>
         )}

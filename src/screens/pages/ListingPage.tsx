@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
-import { FlatList, View } from "react-native";
+import { FlatList, Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SearchBar } from "@/components/ui/search-bar";
 import { AppSelect } from "@/components/ui/select";
@@ -8,7 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SquarePen } from "lucide-react-native";
+import { SquarePen, Trash2 } from "lucide-react-native";
+import { ImgUpload } from "@/components/ui/img-upload";
+import { Icon } from "@/components/ui/icon";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +23,7 @@ import type { Listing } from "@/lib/interfaces";
 
 const categoryOptions = [
   { value: "ALL", label: "All categories" },
-  { value: "ELECTRONIC", label: "Electronics" },
+  { value: "ELECTRONICS", label: "Electronics" },
   { value: "FASHION", label: "Fashion" },
   { value: "HOME", label: "Home" },
   { value: "BOOKS", label: "Books" },
@@ -87,6 +89,7 @@ export default function HomePage({
   setPagerScrollEnabled,
   mode = "all",
 }: HomePageProps) {
+  const MAX_LISTING_IMAGES = 6;
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchValue] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
@@ -100,6 +103,11 @@ export default function HomePage({
   const [editCategory, setEditCategory] = useState("OTHER");
   const [editPrice, setEditPrice] = useState("");
   const [editDiscountPrice, setEditDiscountPrice] = useState("");
+  const [existingPictures, setExistingPictures] = useState<
+    Array<{ id: string; url: string }>
+  >([]);
+  const [removedPictureIds, setRemovedPictureIds] = useState<string[]>([]);
+  const [newPictureUris, setNewPictureUris] = useState<string[]>([]);
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -287,14 +295,67 @@ export default function HomePage({
         ? String(listing.discountedPrice)
         : "",
     );
+    setExistingPictures(
+      (listing.pictures ?? [])
+        .filter((picture) => Boolean(picture.id && picture.url))
+        .map((picture) => ({ id: picture.id, url: picture.url })),
+    );
+    setRemovedPictureIds([]);
+    setNewPictureUris([]);
     setEditError(null);
   }, []);
 
   const closeEditDialog = useCallback(() => {
     if (isSubmittingEdit) return;
     setEditingListing(null);
+    setExistingPictures([]);
+    setRemovedPictureIds([]);
+    setNewPictureUris([]);
     setEditError(null);
   }, [isSubmittingEdit]);
+
+  const getMimeTypeFromImage = (imageUri: string) => {
+    if (imageUri.startsWith("data:")) {
+      const match = imageUri.match(/^data:(.*?);/);
+      return match?.[1] ?? "image/jpeg";
+    }
+
+    const extension = imageUri.split(".").pop()?.toLowerCase();
+
+    switch (extension) {
+      case "png":
+        return "image/png";
+      case "webp":
+        return "image/webp";
+      case "jpg":
+      case "jpeg":
+      default:
+        return "image/jpeg";
+    }
+  };
+
+  const getFileNameFromImage = (imageUri: string) => {
+    const pathFileName = imageUri.split("/").pop();
+    if (pathFileName && !pathFileName.startsWith("data:")) {
+      return pathFileName;
+    }
+
+    const mimeType = getMimeTypeFromImage(imageUri);
+    const extension = mimeType.split("/")[1] || "jpg";
+    return `listing-image.${extension}`;
+  };
+
+  const removeExistingPicture = useCallback((pictureId: string) => {
+    setExistingPictures((prev) => prev.filter((picture) => picture.id !== pictureId));
+    setRemovedPictureIds((prev) =>
+      prev.includes(pictureId) ? prev : [...prev, pictureId],
+    );
+  }, []);
+
+  const remainingImageSlots = Math.max(
+    0,
+    MAX_LISTING_IMAGES - existingPictures.length,
+  );
 
   const submitListingUpdate = useCallback(async () => {
     if (!editingListing) return;
@@ -324,6 +385,11 @@ export default function HomePage({
       (!Number.isFinite(parsedDiscount) || parsedDiscount < 0)
     ) {
       setEditError("Discounted price must be a valid number.");
+      return;
+    }
+
+    if (existingPictures.length + newPictureUris.length > MAX_LISTING_IMAGES) {
+      setEditError(`You can have at most ${MAX_LISTING_IMAGES} images per listing.`);
       return;
     }
 
@@ -361,6 +427,73 @@ export default function HomePage({
 
       const updated = (await response.json()) as Listing;
 
+      if (removedPictureIds.length) {
+        await Promise.all(
+          removedPictureIds.map(async (pictureId) => {
+            const deleteResponse = await fetch(
+              `https://api.saserver.hu/api/pictures/${pictureId}`,
+              {
+                method: "DELETE",
+                headers: {
+                  ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+                },
+                credentials: "include",
+              },
+            );
+
+            if (!deleteResponse.ok) {
+              const message = await deleteResponse.text();
+              throw new Error(
+                message ||
+                  `Failed to delete picture. Status: ${deleteResponse.status}`,
+              );
+            }
+          }),
+        );
+      }
+
+      if (newPictureUris.length) {
+        await Promise.all(
+          newPictureUris.slice(0, remainingImageSlots).map(async (imageUri) => {
+            const mimeType = getMimeTypeFromImage(imageUri);
+            const fileName = getFileNameFromImage(imageUri);
+            const formData = new FormData();
+            formData.append("listingId", editingListing.id);
+
+            if (imageUri.startsWith("data:")) {
+              const imageBlob = await fetch(imageUri).then((res) => res.blob());
+              formData.append("file", imageBlob, fileName);
+            } else {
+              formData.append("file", {
+                uri: imageUri,
+                name: fileName,
+                type: mimeType,
+              } as unknown as Blob);
+            }
+
+            const uploadResponse = await fetch(
+              "https://api.saserver.hu/api/pictures",
+              {
+                method: "POST",
+                headers: {
+                  ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+                },
+                credentials: "include",
+                body: formData,
+              },
+            );
+
+            if (!uploadResponse.ok) {
+              const message = await uploadResponse.text();
+              throw new Error(
+                message ||
+                  `Failed to upload picture. Status: ${uploadResponse.status}`,
+              );
+            }
+          }),
+        );
+      }
+
       setAllData((prev) =>
         prev.map((item) =>
           item.id === editingListing.id
@@ -378,7 +511,8 @@ export default function HomePage({
         ),
       );
 
-      setEditingListing(null);
+      await fetchListings();
+      closeEditDialog();
     } catch (err) {
       console.error("Error updating listing:", err);
       setEditError(
@@ -389,11 +523,17 @@ export default function HomePage({
     }
   }, [
     editCategory,
+    closeEditDialog,
     editDescription,
     editDiscountPrice,
     editingListing,
+    existingPictures.length,
     editPrice,
     editTitle,
+    fetchListings,
+    remainingImageSlots,
+    newPictureUris,
+    removedPictureIds,
   ]);
 
   const handleSearch = (query: string) => {
@@ -484,13 +624,22 @@ export default function HomePage({
         />
       )}
 
-      <Dialog open={Boolean(editingListing)} onOpenChange={closeEditDialog}>
+      <Dialog
+        open={Boolean(editingListing)}
+        onOpenChange={(open) => {
+          if (!open) closeEditDialog();
+        }}
+      >
         <DialogContent className="max-w-[95%]">
           <DialogHeader>
             <DialogTitle>Edit listing</DialogTitle>
           </DialogHeader>
 
-          <View className="gap-3">
+          <ScrollView
+            className="max-h-[80vh]"
+            contentContainerClassName="gap-3 pb-2"
+            showsVerticalScrollIndicator={false}
+          >
             <View className="gap-1">
               <Label>Title</Label>
               <Input
@@ -539,6 +688,63 @@ export default function HomePage({
               />
             </View>
 
+            <View className="gap-1">
+              <Label>Current pictures</Label>
+              {existingPictures.length ? (
+                <View className="flex-row flex-wrap gap-2">
+                  {existingPictures.map((picture) => {
+                    const uri = picture.url.startsWith("http")
+                      ? picture.url
+                      : `https://cash.saserver.hu${picture.url}`;
+
+                    return (
+                      <View
+                        key={picture.id}
+                        className="relative h-20 w-20 overflow-hidden rounded-md border border-border"
+                      >
+                        <Image
+                          source={{ uri }}
+                          className="h-full w-full"
+                          resizeMode="cover"
+                        />
+                        <Pressable
+                          className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-black/65"
+                          onPress={() => removeExistingPicture(picture.id)}
+                          disabled={isSubmittingEdit}
+                          hitSlop={8}
+                        >
+                          <Icon as={Trash2} size={14} className="text-white" />
+                        </Pressable>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : (
+                <Text className="text-sm text-muted-foreground">
+                  No pictures currently attached.
+                </Text>
+              )}
+            </View>
+
+            <View className="gap-1">
+              <Label>Add new pictures</Label>
+              <ImgUpload
+                key={`img-upload-${remainingImageSlots}`}
+                onImagesSelect={setNewPictureUris}
+                maxImages={remainingImageSlots}
+                disabled={isSubmittingEdit}
+                className="mt-1"
+              />
+              <Text className="text-xs text-muted-foreground">
+                {existingPictures.length} / {MAX_LISTING_IMAGES} current images. {remainingImageSlots} slot(s) available.
+              </Text>
+              {newPictureUris.length ? (
+                <Text className="text-xs text-muted-foreground">
+                  {newPictureUris.length} new image(s) selected for upload.
+                </Text>
+              ) : null}
+            </View>
+
             {editError ? (
               <Text className="text-sm text-red-500">{editError}</Text>
             ) : null}
@@ -555,7 +761,7 @@ export default function HomePage({
                 <Text>{isSubmittingEdit ? "Saving..." : "Save changes"}</Text>
               </Button>
             </View>
-          </View>
+          </ScrollView>
         </DialogContent>
       </Dialog>
     </SafeAreaView>
