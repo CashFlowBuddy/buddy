@@ -10,9 +10,9 @@ import { Text } from "@/components/ui/text";
 import { authClient } from "@/lib/auth-client";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { MessageStackParamList } from "@/navigation/MessageNavigation";
+import type { ChatScreenParams } from "@/navigation/routeTypes";
 
-type Props = NativeStackScreenProps<MessageStackParamList, "Chat">;
+type Props = NativeStackScreenProps<{ Chat: ChatScreenParams }, "Chat">;
 
 export default function ChatScreen({ route }: Props) {
   const { chatRoomId, users } = route.params;

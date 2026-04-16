@@ -20,6 +20,9 @@ import {
 import { NO_IMAGE_SENTINEL, ProductCard } from "@/components/product-card";
 import { getAuthCookieHeader } from "@/lib/auth-client";
 import type { Listing } from "@/lib/interfaces";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { AppStackParamList } from "@/navigation/AppNavigation";
 
 const categoryOptions = [
   { value: "ALL", label: "All categories" },
@@ -40,6 +43,8 @@ type HomePageProps = {
   mode?: "all" | "saved" | "mine";
 };
 
+type NavigationProp = NativeStackNavigationProp<AppStackParamList>;
+
 type ListingItemProps = {
   item: Listing;
   mode: "all" | "saved" | "mine";
@@ -48,6 +53,7 @@ type ListingItemProps = {
   setPagerScrollEnabled?: (enabled: boolean) => void;
   onToggleFavourite: (listingId: string, currentlySaved: boolean) => void;
   onEditPress?: (listing: Listing) => void;
+  onPress?: () => void;
 };
 
 const ListingItem = memo(function ListingItem({
@@ -58,6 +64,7 @@ const ListingItem = memo(function ListingItem({
   setPagerScrollEnabled,
   onToggleFavourite,
   onEditPress,
+  onPress,
 }: ListingItemProps) {
   return (
     <View className="w-full">
@@ -80,6 +87,7 @@ const ListingItem = memo(function ListingItem({
         onToggleFavourite={onToggleFavourite}
         onCarouselTouchStart={() => setPagerScrollEnabled?.(false)}
         onCarouselTouchEnd={() => setPagerScrollEnabled?.(true)}
+        onPress={onPress}
       />
     </View>
   );
@@ -89,6 +97,7 @@ export default function HomePage({
   setPagerScrollEnabled,
   mode = "all",
 }: HomePageProps) {
+  const navigation = useNavigation<NavigationProp>();
   const MAX_LISTING_IMAGES = 6;
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchValue] = useState("");
@@ -561,11 +570,13 @@ export default function HomePage({
         setPagerScrollEnabled={setPagerScrollEnabled}
         onToggleFavourite={toggleSaveListing}
         onEditPress={openEditDialog}
+        onPress={() => navigation.navigate("ListingDetail", { listing: item })}
       />
     ),
     [
       mode,
       openEditDialog,
+      navigation,
       pendingSaveIds,
       savedListingIds,
       setPagerScrollEnabled,
