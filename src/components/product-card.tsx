@@ -27,6 +27,7 @@ interface ProductCardProps {
   cardActionIcon?: LucideIcon;
   onCarouselTouchStart?: () => void;
   onCarouselTouchEnd?: () => void;
+  onPress?: () => void;
   className?: string;
 }
 
@@ -45,6 +46,7 @@ function ProductCard({
   cardActionIcon,
   onCarouselTouchStart,
   onCarouselTouchEnd,
+  onPress,
   className,
   ...CardProps
 }: ProductCardProps) {
@@ -125,45 +127,45 @@ function ProductCard({
           }}
         />
 
-        {showFavouriteAction ? (
-          <Pressable
-            className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-black/40"
-            onPress={() => onToggleFavourite?.(uid, favourite)}
-            disabled={isFavouriteLoading}
-            hitSlop={8}
-          >
-            <Icon
-              as={Heart}
-              className={favourite ? "text-red-500" : "text-white"}
-              size={18}
-              fill={favourite ? "currentColor" : "none"}
-            />
-          </Pressable>
-        ) : null}
+          {showFavouriteAction ? (
+            <Pressable
+              className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-black/40"
+              onPress={() => onToggleFavourite?.(uid, favourite)}
+              disabled={isFavouriteLoading}
+              hitSlop={8}
+            >
+              <Icon
+                as={Heart}
+                className={favourite ? "text-red-500" : "text-white"}
+                size={18}
+                fill={favourite ? "currentColor" : "none"}
+              />
+            </Pressable>
+          ) : null}
 
-        {images.length > 1 && (
-          <View className="absolute bottom-3 w-full items-center">
-            <View style={{ flexDirection: "row", gap: 6 }}>
-              {images.map((_, index) => (
-                <View
-                  key={index}
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 999,
-                    backgroundColor:
-                      index === activeIndex
-                        ? "#fff"
-                        : "rgba(255,255,255,0.5)",
-                  }}
-                />
-              ))}
+          {images.length > 1 && (
+            <View className="absolute bottom-3 w-full items-center">
+              <View style={{ flexDirection: "row", gap: 6 }}>
+                {images.map((_, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 999,
+                      backgroundColor:
+                        index === activeIndex
+                          ? "#fff"
+                          : "rgba(255,255,255,0.5)",
+                    }}
+                  />
+                ))}
+              </View>
             </View>
-          </View>
-        )}
+          )}
       </View>
 
-      <View className="flex-1 px-4 py-3 justify-center">
+      <View className="flex-1 justify-center px-4 py-3">
         {onCardActionPress && cardActionIcon ? (
           <View className="mb-2 flex-row justify-end">
             <Pressable
@@ -176,50 +178,53 @@ function ProductCard({
             </Pressable>
           </View>
         ) : null}
-        <CardTitle className="w-full p-0">
-          <Text numberOfLines={2} className="mb-1 text-base font-medium">
-            {title}
-          </Text>
-        </CardTitle>
-        <CardDescription className="w-full p-0">
-          {hasDiscount ? (
-            <View>
-              <Text numberOfLines={1} className="text-xs text-muted-foreground line-through">
-                {formatHuf(price)}{"\u00A0"}Ft
-              </Text>
-              <View className="mt-0.5 flex-row items-end gap-2">
-                <View className="flex-row items-end gap-1">
-                  <Text
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.92}
-                    className="text-lg font-bold text-primary"
-                  >
-                    {formatHuf(displayPrice)}
-                  </Text>
-                  <Text className="pb-0.5 text-xs font-semibold text-primary">Ft</Text>
-                </View>
-                <View className="rounded-full bg-red-500/10 px-2 py-0.5">
-                  <Text className="text-xs font-semibold text-red-500">
-                    -{discountPercent}%
-                  </Text>
+
+        <Pressable onPress={onPress} disabled={!onPress} className="w-full">
+          <CardTitle className="w-full p-0">
+            <Text numberOfLines={2} className="mb-1 text-base font-medium">
+              {title}
+            </Text>
+          </CardTitle>
+          <CardDescription className="w-full p-0">
+            {hasDiscount ? (
+              <View>
+                <Text numberOfLines={1} className="text-xs text-muted-foreground line-through">
+                  {formatHuf(price)}{"\u00A0"}Ft
+                </Text>
+                <View className="mt-0.5 flex-row items-end gap-2">
+                  <View className="flex-row items-end gap-1">
+                    <Text
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.92}
+                      className="text-lg font-bold text-primary"
+                    >
+                      {formatHuf(displayPrice)}
+                    </Text>
+                    <Text className="pb-0.5 text-xs font-semibold text-primary">Ft</Text>
+                  </View>
+                  <View className="rounded-full bg-red-500/10 px-2 py-0.5">
+                    <Text className="text-xs font-semibold text-red-500">
+                      -{discountPercent}%
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ) : (
-            <View className="flex-row items-end gap-1">
-              <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.92}
-                className="text-lg font-bold text-primary"
-              >
-                {formatHuf(displayPrice)}
-              </Text>
-              <Text className="pb-0.5 text-xs font-semibold text-primary">Ft</Text>
-            </View>
-          )}
-        </CardDescription>
+            ) : (
+              <View className="flex-row items-end gap-1">
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.92}
+                  className="text-lg font-bold text-primary"
+                >
+                  {formatHuf(displayPrice)}
+                </Text>
+                <Text className="pb-0.5 text-xs font-semibold text-primary">Ft</Text>
+              </View>
+            )}
+          </CardDescription>
+        </Pressable>
       </View>
     </Card>
   );
