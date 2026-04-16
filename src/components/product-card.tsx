@@ -8,7 +8,7 @@ import Carousel, { ICarouselInstance } from "react-native-reanimated-carousel";
 import { Image, Pressable, View, useWindowDimensions } from "react-native";
 import { Text } from "./ui/text";
 import { Icon } from "./ui/icon";
-import { Heart, Store } from "lucide-react-native";
+import { Heart, Store, type LucideIcon } from "lucide-react-native";
 
 export const NO_IMAGE_SENTINEL = "__NO_IMAGE__";
 
@@ -18,9 +18,13 @@ interface ProductCardProps {
   discountedPrice?: number;
   images: string[];
   favourite: boolean;
+  showFavouriteAction?: boolean;
   isFavouriteLoading?: boolean;
+  isCardActionLoading?: boolean;
   uid: string;
   onToggleFavourite?: (id: string, currentValue: boolean) => void;
+  onCardActionPress?: () => void;
+  cardActionIcon?: LucideIcon;
   onCarouselTouchStart?: () => void;
   onCarouselTouchEnd?: () => void;
   className?: string;
@@ -32,9 +36,13 @@ function ProductCard({
   discountedPrice,
   images,
   favourite,
+  showFavouriteAction = true,
   isFavouriteLoading = false,
+  isCardActionLoading = false,
   uid,
   onToggleFavourite,
+  onCardActionPress,
+  cardActionIcon,
   onCarouselTouchStart,
   onCarouselTouchEnd,
   className,
@@ -117,19 +125,21 @@ function ProductCard({
           }}
         />
 
-        <Pressable
-          className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-black/40"
-          onPress={() => onToggleFavourite?.(uid, favourite)}
-          disabled={isFavouriteLoading}
-          hitSlop={8}
-        >
-          <Icon
-            as={Heart}
-            className={favourite ? "text-red-500" : "text-white"}
-            size={18}
-            fill={favourite ? "currentColor" : "none"}
-          />
-        </Pressable>
+        {showFavouriteAction ? (
+          <Pressable
+            className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-black/40"
+            onPress={() => onToggleFavourite?.(uid, favourite)}
+            disabled={isFavouriteLoading}
+            hitSlop={8}
+          >
+            <Icon
+              as={Heart}
+              className={favourite ? "text-red-500" : "text-white"}
+              size={18}
+              fill={favourite ? "currentColor" : "none"}
+            />
+          </Pressable>
+        ) : null}
 
         {images.length > 1 && (
           <View className="absolute bottom-3 w-full items-center">
@@ -154,6 +164,18 @@ function ProductCard({
       </View>
 
       <View className="flex-1 px-4 py-3 justify-center">
+        {onCardActionPress && cardActionIcon ? (
+          <View className="mb-2 flex-row justify-end">
+            <Pressable
+              className="h-8 w-8 items-center justify-center rounded-full border border-border bg-background"
+              onPress={onCardActionPress}
+              disabled={isCardActionLoading}
+              hitSlop={8}
+            >
+              <Icon as={cardActionIcon} className="text-foreground" size={16} />
+            </Pressable>
+          </View>
+        ) : null}
         <CardTitle className="w-full p-0">
           <Text numberOfLines={2} className="mb-1 text-base font-medium">
             {title}

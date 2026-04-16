@@ -69,7 +69,7 @@ export default function ProfilePage() {
           <Button
             variant="outline"
             className="justify-between w-full"
-            onPress={() => navigation.navigate("Favourites")}
+            onPress={() => navigation.navigate("MyListings")}
           >
             <Text>My listings</Text>
             <ChevronRight
