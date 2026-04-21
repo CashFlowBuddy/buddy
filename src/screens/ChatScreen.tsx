@@ -36,7 +36,10 @@ export default function ChatScreen({ route }: Props) {
     sendMessage,
     typingLabel,
     handleTyping,
-  } = useChatSocket(currentUserId);
+  } = useChatSocket(currentUserId, {
+    conversationTitle: route.params.title,
+    participantNames: userNameMap,
+  });
 
   const [messageInput, setMessageInput] = useState("");
 

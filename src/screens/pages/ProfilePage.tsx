@@ -10,7 +10,6 @@ import { ChevronRight } from "lucide-react-native";
 import AccSetDial from "../dialogs/AccSetDial";
 import SellsDial from "../dialogs/SellsDial";
 import NotificationDial from "../dialogs/NotificationDial";
-import PrivacyDial from "../dialogs/PrivacyDial";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "@/navigation/AppNavigation";
@@ -86,7 +85,6 @@ export default function ProfilePage() {
           <SellsDial />
           <AccSetDial />
           <NotificationDial />
-          <PrivacyDial />
         </View>
 
         <View className="mb-4">

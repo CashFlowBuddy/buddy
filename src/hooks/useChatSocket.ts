@@ -2,6 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { getAuthCookieHeader } from "@/lib/auth-client";
 import type { ChatMessage, TypingPayload } from "@/lib/types";
+import { scheduleChatNotificationAsync } from "@/lib/notifications";
+
+type UseChatSocketOptions = {
+  conversationTitle?: string;
+  participantNames?: Record<string, string>;
+};
 
 const SOCKET_URL = "https://api.saserver.hu";
 
@@ -29,7 +35,10 @@ function getErrorMessage(error: unknown): string {
   return "Unknown socket error";
 }
 
-export function useChatSocket(currentUserId?: string) {
+export function useChatSocket(
+  currentUserId?: string,
+  options: UseChatSocketOptions = {},
+) {
   const socketRef = useRef<Socket | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selfTypingRef = useRef(false);
@@ -93,6 +102,18 @@ export function useChatSocket(currentUserId?: string) {
           }
           return [...prev, normalized];
         });
+
+        if (
+          currentUserId &&
+          normalized.byUserId !== currentUserId &&
+          joinedRoomIdRef.current !== normalized.chatRoomId
+        ) {
+          void scheduleChatNotificationAsync({
+            conversationTitle: options.conversationTitle,
+            senderName: options.participantNames?.[normalized.byUserId],
+            messagePreview: normalized.content,
+          });
+        }
       });
 
       socket.on("userTyping", (payload: TypingPayload) => {
@@ -140,7 +161,7 @@ export function useChatSocket(currentUserId?: string) {
       socket?.disconnect();
       socketRef.current = null;
     };
-  }, [currentUserId]);
+  }, [currentUserId, options.conversationTitle, options.participantNames]);
 
   const joinRoom = useCallback((roomId: string) => {
     const socket = socketRef.current;
