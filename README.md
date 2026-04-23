@@ -54,28 +54,6 @@ npm run android
 npm run ios
 ```
 
-## Storybook
-
-This project includes React Native Storybook support.
-
-Generate stories index:
-
-```bash
-npm run storybook-generate
-```
-
-Run Storybook in Expo:
-
-```bash
-npm run storybook
-```
-
-Platform shortcuts:
-
-```bash
-npm run storybook:ios
-npm run storybook:android
-```
 
 ## App Architecture (Short)
 
@@ -134,8 +112,6 @@ Build and submit commands are documented in [docs/DEPLOYMENT.md](docs/DEPLOYMENT
 npx expo start
 npm run android
 npm run ios
-npm run storybook
-npm run storybook-generate
 ```
 
 ## Notes
