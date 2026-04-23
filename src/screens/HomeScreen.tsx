@@ -4,8 +4,15 @@ import PagerView from "react-native-pager-view";
 import HomePage from "./pages/ListingPage";
 import MessageNavigation from "@/navigation/MessageNavigation";
 import ProfilePage from "./pages/ProfilePage";
+import { authClient } from "@/lib/auth-client";
+import { useMessageNotificationsSocket } from "@/hooks/useMessageNotificationsSocket";
 
 export default function HomeScreen() {
+  const { data: session } = authClient.useSession();
+  const currentUserId = (session?.user as { id?: string } | undefined)?.id;
+
+  useMessageNotificationsSocket(currentUserId);
+
   const pagerRef = useRef<PagerView>(null);
   const setPagerScrollEnabled = useCallback((enabled: boolean) => {
     pagerRef.current?.setScrollEnabled(enabled);

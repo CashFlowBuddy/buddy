@@ -4,7 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import RootNavigator from "./src/navigation/RootNavigation";
 import { useEffect, useState } from "react";
 import { authClient } from "./src/lib/auth-client";
-import { ThemeProvider, ThemeContext } from "./src/theme/ThemeContext";
+import { ThemeProvider } from "./src/theme/ThemeContext";
 import LottieView from "lottie-react-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { NAV_THEME } from "./src/lib/theme";
@@ -16,14 +16,18 @@ import { TamaguiProvider } from 'tamagui';
 import { config } from './tamagui.config';
 import StorybookUI from './.rnstorybook';
 import { useNotifications } from "@/hooks/useNotifications";
+import { usePushTokenRegistration } from "@/hooks/usePushTokenRegistration";
 
 const isStorybook = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === 'true';
 
 function AppContent() {
   const { colorScheme } = useColorScheme();
   const themeName = colorScheme ?? "light";
-  const { isPending: sessionLoading } = authClient.useSession();
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
+  const currentUserId = (session?.user as { id?: string } | undefined)?.id;
+
   useNotifications();
+  usePushTokenRegistration(currentUserId);
 
   const [timerDone, setTimerDone] = useState(false);
 

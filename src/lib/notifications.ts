@@ -1,5 +1,7 @@
 import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 import { Platform } from "react-native";
+import { getAuthCookieHeader } from "@/lib/auth-client";
 
 let notificationSystemReady = false;
 
@@ -10,6 +12,13 @@ export type ChatNotificationInput = {
   senderName?: string;
   messagePreview: string;
 };
+
+type RegisterPushTokenParams = {
+  userId?: string;
+};
+
+const PUSH_TOKEN_ENDPOINT =
+  process.env.EXPO_PUBLIC_PUSH_TOKEN_ENDPOINT;
 
 function truncateText(value: string, maxLength = 120) {
   if (value.length <= maxLength) {
@@ -116,4 +125,73 @@ export async function scheduleChatNotificationAsync({
   });
 
   return true;
+}
+
+function getExpoProjectId() {
+  return (
+    Constants.expoConfig?.extra?.eas?.projectId ??
+    Constants.easConfig?.projectId ??
+    undefined
+  );
+}
+
+export async function getExpoPushTokenAsync() {
+  await ensureNotificationSystemAsync();
+
+  const permissionStatus = await requestNotificationPermissionAsync();
+  if (permissionStatus !== "granted") {
+    return null;
+  }
+
+  const projectId = getExpoProjectId();
+  if (!projectId) {
+    return null;
+  }
+
+  const tokenResponse = await Notifications.getExpoPushTokenAsync({
+    projectId,
+  });
+
+  return tokenResponse.data;
+}
+
+export async function registerExpoPushTokenAsync({
+  userId,
+}: RegisterPushTokenParams = {}) {
+  if (!PUSH_TOKEN_ENDPOINT) {
+    return {
+      ok: false as const,
+      reason: "endpoint-not-configured" as const,
+    };
+  }
+
+  const expoPushToken = await getExpoPushTokenAsync();
+  if (!expoPushToken) {
+    return { ok: false as const, reason: "no-token" as const };
+  }
+
+  const authHeader = await getAuthCookieHeader();
+
+  const response = await fetch(PUSH_TOKEN_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(authHeader ? { Cookie: authHeader } : {}),
+    },
+    body: JSON.stringify({
+      userId,
+      expoPushToken,
+      platform: Platform.OS,
+    }),
+  });
+
+  if (!response.ok) {
+    return {
+      ok: false as const,
+      reason: "request-failed" as const,
+      status: response.status,
+    };
+  }
+
+  return { ok: true as const, expoPushToken };
 }

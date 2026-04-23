@@ -39,6 +39,7 @@ export default function ChatScreen({ route }: Props) {
   } = useChatSocket(currentUserId, {
     conversationTitle: route.params.title,
     participantNames: userNameMap,
+    enableNotifications: false,
   });
 
   const [messageInput, setMessageInput] = useState("");
