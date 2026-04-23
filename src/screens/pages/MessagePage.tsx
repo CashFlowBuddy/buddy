@@ -146,7 +146,7 @@ export default function MessagePage() {
                     className="size-12"
                   >
                     <AvatarImage
-                      source={{ uri: firstOther?.image ?? undefined }}
+                      source={{ uri: "https://cash.saserver.hu" + (firstOther?.image ?? undefined) }}
                     />
                     <AvatarFallback>
                       <Text className="text-sm font-semibold">

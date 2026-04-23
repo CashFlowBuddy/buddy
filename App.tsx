@@ -1,3 +1,4 @@
+import "@tamagui/native/setup-zeego";
 import "./global.css";
 import { NavigationContainer } from "@react-navigation/native";
 import RootNavigator from "./src/navigation/RootNavigation";
@@ -12,14 +13,17 @@ import { StatusBar, View } from "react-native";
 import { Text } from "./src/components/ui/text";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { TamaguiProvider } from 'tamagui';
-import config from './tamagui.config';
+import { config } from './tamagui.config';
 import StorybookUI from './.rnstorybook';
+import { useNotifications } from "@/hooks/useNotifications";
 
 const isStorybook = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === 'true';
 
 function AppContent() {
   const { colorScheme } = useColorScheme();
+  const themeName = colorScheme ?? "light";
   const { isPending: sessionLoading } = authClient.useSession();
+  useNotifications();
 
   const [timerDone, setTimerDone] = useState(false);
 
@@ -58,7 +62,7 @@ function AppContent() {
   return (
     <>
       <StatusBar barStyle={colorScheme === "dark" ? "light-content" : "dark-content"} />
-      <NavigationContainer theme={NAV_THEME[colorScheme]}>
+      <NavigationContainer theme={NAV_THEME[themeName]}>
         <RootNavigator />
       </NavigationContainer>
       <PortalHost />
