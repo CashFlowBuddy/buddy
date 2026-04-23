@@ -7,6 +7,7 @@ import { scheduleChatNotificationAsync } from "@/lib/notifications";
 type UseChatSocketOptions = {
   conversationTitle?: string;
   participantNames?: Record<string, string>;
+  enableNotifications?: boolean;
 };
 
 const SOCKET_URL = "https://api.saserver.hu";
@@ -104,6 +105,7 @@ export function useChatSocket(
         });
 
         if (
+          options.enableNotifications !== false &&
           currentUserId &&
           normalized.byUserId !== currentUserId &&
           joinedRoomIdRef.current !== normalized.chatRoomId
