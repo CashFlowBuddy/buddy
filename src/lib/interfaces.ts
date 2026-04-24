@@ -19,6 +19,13 @@ export interface ListingPicture {
   listingId: string;
 }
 
+export type ListingStatus =
+  | "AVAILABLE"
+  | "PENDING"
+  | "FROZEN"
+  | "SOLD"
+  | "ARCHIVED";
+
 export interface Listing {
   id: string;
   title: string;
@@ -26,7 +33,7 @@ export interface Listing {
   price?: number;
   discountedPrice?: number;
   category?: string;
-  status?: string;
+  status?: ListingStatus;
   url?: string;
   userId?: string;
   createdAt?: string;

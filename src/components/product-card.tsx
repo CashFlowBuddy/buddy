@@ -8,6 +8,7 @@ import Carousel, { ICarouselInstance } from "react-native-reanimated-carousel";
 import { Image, Pressable, View, useWindowDimensions } from "react-native";
 import { Text } from "./ui/text";
 import { Icon } from "./ui/icon";
+import { Badge } from "./ui/badge";
 import { Heart, Store, type LucideIcon } from "lucide-react-native";
 
 export const NO_IMAGE_SENTINEL = "__NO_IMAGE__";
@@ -17,6 +18,7 @@ interface ProductCardProps {
   price: number;
   discountedPrice?: number;
   images: string[];
+  status?: string;
   favourite: boolean;
   showFavouriteAction?: boolean;
   isFavouriteLoading?: boolean;
@@ -36,6 +38,7 @@ function ProductCard({
   price,
   discountedPrice,
   images,
+  status,
   favourite,
   showFavouriteAction = true,
   isFavouriteLoading = false,
@@ -74,9 +77,45 @@ function ProductCard({
       : 0;
 
   const imageSize = Math.min(132, Math.max(100, width * 0.28));
+  const normalizedStatus = status?.toUpperCase();
+  const isFrozen = normalizedStatus === "FROZEN";
+
+  const statusLabelMap: Record<string, string> = {
+    AVAILABLE: "Available",
+    PENDING: "Pending",
+    FROZEN: "Frozen",
+    SOLD: "Sold",
+    ARCHIVED: "Archived",
+  };
+
+  const statusVariantMap: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    AVAILABLE: "default",
+    PENDING: "secondary",
+    FROZEN: "outline",
+    SOLD: "destructive",
+    ARCHIVED: "outline",
+  };
+
+  const statusLabel =
+    normalizedStatus && statusLabelMap[normalizedStatus]
+      ? statusLabelMap[normalizedStatus]
+      : undefined;
+  const statusVariant =
+    normalizedStatus && statusVariantMap[normalizedStatus]
+      ? statusVariantMap[normalizedStatus]
+      : "outline";
 
   return (
-    <Card className={"flex-row overflow-hidden py-0 " + className} {...CardProps}>
+    <Card
+      className={
+        "flex-row overflow-hidden py-0 " +
+        (isFrozen
+          ? "border-slate-400/70 bg-muted/35 opacity-85 "
+          : "") +
+        className
+      }
+      {...CardProps}
+    >
       <View className="relative">
         <Carousel
           ref={ref}
@@ -143,6 +182,12 @@ function ProductCard({
             </Pressable>
           ) : null}
 
+          {isFrozen ? (
+            <View className="absolute left-2 top-2 rounded-full bg-slate-800/80 px-2 py-1">
+              <Text className="text-xs font-semibold uppercase text-white">Frozen</Text>
+            </View>
+          ) : null}
+
           {images.length > 1 && (
             <View className="absolute bottom-3 w-full items-center">
               <View style={{ flexDirection: "row", gap: 6 }}>
@@ -166,6 +211,29 @@ function ProductCard({
       </View>
 
       <View className="flex-1 justify-center px-4 py-3">
+        {statusLabel ? (
+          <View className="mb-2 flex-row">
+            <Badge
+              variant={statusVariant}
+              className={
+                normalizedStatus === "FROZEN"
+                  ? "border-slate-500 bg-slate-500/10"
+                  : undefined
+              }
+            >
+              <Text
+                className={
+                  normalizedStatus === "FROZEN"
+                    ? "text-slate-700"
+                    : undefined
+                }
+              >
+                {statusLabel}
+              </Text>
+            </Badge>
+          </View>
+        ) : null}
+
         {onCardActionPress && cardActionIcon ? (
           <View className="mb-2 flex-row justify-end">
             <Pressable

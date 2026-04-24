@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, ScrollView, Pressable } from "react-native";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { View, ScrollView, Pressable, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -22,21 +22,27 @@ export default function MessagePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const isFetchingChatRoomsRef = useRef(false);
   const navigation = useNavigation<NavigationProp>();
 
   const { data: session } = authClient.useSession();
-
-  useEffect(() => {
-    fetchChatRooms();
-  }, []);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
 
-  const fetchChatRooms = async () => {
+  const fetchChatRooms = useCallback(async (showLoading = true) => {
+    if (isFetchingChatRoomsRef.current) {
+      return;
+    }
+
+    isFetchingChatRoomsRef.current = true;
+
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const authHeader = await getAuthCookieHeader();
 
       const response = await fetch("https://cash.saserver.hu/api/chat-rooms", {
@@ -60,11 +66,30 @@ export default function MessagePage() {
       }
     } catch (error) {
       console.error("Error fetching chat rooms:", error);
-      setChatRooms([]);
+      if (showLoading) {
+        setChatRooms([]);
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
+
+      isFetchingChatRoomsRef.current = false;
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchChatRooms();
+  }, [fetchChatRooms]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchChatRooms(false);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchChatRooms]);
 
   const filteredDATA =
     chatRooms?.filter(
@@ -117,11 +142,24 @@ export default function MessagePage() {
           ))}
         </View>
       ) : filteredDATA.length === 0 ? (
-        <View className="flex-1 items-center justify-center py-10">
-          <Text variant="muted">No conversations yet.</Text>
-        </View>
+        <ScrollView
+          className="w-full px-6"
+          contentContainerStyle={{ flexGrow: 1 }}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          }
+        >
+          <View className="flex-1 items-center justify-center py-10">
+            <Text variant="muted">No conversations yet.</Text>
+          </View>
+        </ScrollView>
       ) : (
-        <ScrollView className="w-full px-6">
+        <ScrollView
+          className="w-full px-6"
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          }
+        >
           {filteredDATA.map((room, index) => {
             const lastMessage = room.messages[room.messages.length - 1];
             const otherUsers = room.users.filter(
