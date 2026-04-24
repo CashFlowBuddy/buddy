@@ -44,11 +44,11 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
 
   return (
     <View className="gap-6">
-      <Card className="border-border/0 sm:border-border shadow-none sm:shadow-sm sm:shadow-black/5">
-        <CardHeader>
-          <CardTitle className="text-center text-xl sm:text-left">Sign in to your app</CardTitle>
+      <Card className="rounded-2xl border border-border/60 bg-background/95 shadow-sm shadow-black/10">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-center text-2xl sm:text-left">Welcome back</CardTitle>
           <CardDescription className="text-center sm:text-left">
-            Welcome back! Please sign in to continue
+            Sign in to continue to your marketplace.
           </CardDescription>
         </CardHeader>
         <CardContent className="gap-6">
@@ -105,7 +105,7 @@ export function SignInForm({ onSignUpPress }: SignInFormProps) {
               onPress={() => {
                 onSignUpPress?.();
               }}>
-              <Text className="text-sm underline underline-offset-4">Sign up</Text>
+              <Text className="text-primary text-sm underline underline-offset-4">Sign up</Text>
             </Pressable>
           </Text>
           <View className="flex-row items-center">
