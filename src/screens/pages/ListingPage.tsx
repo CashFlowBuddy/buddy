@@ -122,6 +122,7 @@ export default function HomePage({
   const [isSubmittingFreeze, setIsSubmittingFreeze] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const isFetchingListingsRef = useRef(false);
 
   useEffect(() => {
@@ -671,17 +672,50 @@ export default function HomePage({
   return (
     <SafeAreaView className="flex-1">
       <View className="px-6 pb-4">
-        <AppSelect
-          value={selectedCategory}
-          onValueChange={setSelectedCategory}
-          options={categoryOptions}
-          placeholder="Filter by category"
-        />
         <SearchBar
           value={searchQuery}
           onChangeText={handleSearch}
+          onFocus={() => setIsSearchFocused(true)}
+          onBlur={() => setIsSearchFocused(false)}
           onClear={() => setSearchValue("")}
         />
+        {isSearchFocused ? (
+          <View className="mt-3">
+            <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Categories
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {categoryOptions.map((category) => {
+                const isActive = selectedCategory === category.value;
+
+                return (
+                  <Pressable
+                    key={category.value}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isActive }}
+                    onPress={() => setSelectedCategory(category.value)}
+                    className={
+                      "max-w-full rounded-full border px-4 py-2 " +
+                      (isActive
+                        ? "border-primary bg-primary"
+                        : "border-border bg-background")
+                    }
+                  >
+                    <Text
+                      numberOfLines={1}
+                      className={
+                        "text-xs font-medium " +
+                        (isActive ? "text-primary-foreground" : "text-foreground")
+                      }
+                    >
+                      {category.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
         {error ? (
           <Text className="mt-2 text-center text-red-500">{error}</Text>
         ) : null}
@@ -699,26 +733,41 @@ export default function HomePage({
           ))}
         </View>
       ) : (
-        <FlatList
-          data={filteredDATA}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          className="px-6"
-          contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          ListEmptyComponent={() => (
-            <View className="p-4">
-              <Text className="text-center text-gray-500">
-                {mode === "saved"
-                  ? "No saved items found"
-                  : mode === "mine"
-                    ? "No listings found"
-                    : "No items found"}
-              </Text>
-            </View>
-          )}
-        />
+        <View className="flex-1">
+          <FlatList
+            data={filteredDATA}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            className="px-6"
+            contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
+            style={
+              isSearchFocused
+                ? { opacity: 0.32, transform: [{ scale: 0.995 }] }
+                : undefined
+            }
+            scrollEnabled={!isSearchFocused}
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            ListEmptyComponent={() => (
+              <View className="p-4">
+                <Text className="text-center text-gray-500">
+                  {mode === "saved"
+                    ? "No saved items found"
+                    : mode === "mine"
+                      ? "No listings found"
+                      : "No items found"}
+                </Text>
+              </View>
+            )}
+          />
+
+          {isSearchFocused ? (
+            <View
+              pointerEvents="none"
+              className="absolute bottom-0 left-0 right-0 top-0 bg-background/20"
+            />
+          ) : null}
+        </View>
       )}
 
       <Dialog
